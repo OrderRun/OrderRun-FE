@@ -1,62 +1,83 @@
-# OrderRun-FE — Codex 프로젝트 지도
+# OrderRun-FE Root Harness
 
-꼬붕단 관리자 웹: React + TypeScript + Vite. 운영자가 Request, Application,
-Mission, Dispute 상태를 관리·추적하는 어드민이다.
+이 파일은 Claude Code와 Codex가 함께 사용하는 프로젝트 루트 규칙이다.
+`CLAUDE.md`, `.claude/`, `.codex/`는 실행 Adapter이며 여기의 역할·Lane·판정
+기준을 변경하거나 복사해 별도 규칙으로 만들 수 없다.
 
-## 빠른 지도
+## 프로젝트 지도
 
-| 위치 | 책임 |
+꼬붕단 관리자 웹. React 19 + TypeScript 6 + Vite 8을 사용한다. ESLint는
+`--max-warnings 0`이며 테스트 러너, 라우터, 서버 상태관리, API/UI 라이브러리는
+아직 도입되지 않았다. 설정이 바뀌었다는 근거가 있거나 새 의존성이 필요할 때만
+원본 설정을 다시 조사한다.
+
+| 관심사 | 선택 Context Harness |
 |---|---|
-| `src/main.tsx` | 앱 엔트리 |
-| `src/App.tsx` | 루트 UI |
-| `src/index.css` | 전역 스타일 |
-| `docs/project-conventions.md` | 확인된 스택·컴파일러·배치 규칙 |
-| `docs/codex-harness.md` | 역할, 레인, 인계·검증 절차 |
-| `.codex/skills/orderrun-development/` | 기능 변경 오케스트레이션 Skill |
-| `.codex/skills/orderrun-review/` | 독립 리뷰·검증 Skill |
-| `.claude/` / `CLAUDE.md` | Claude Code Harness — 수정하지 않음 |
+| Page, Component, CSS, 사용자 입력, 화면 상태 | `.harness/context/presentation/AGENTS.md` |
+| 비즈니스 규칙, 검증, 상태 전이, 순수 계산 | `.harness/context/domain/AGENTS.md` |
+| API, DTO, mapper, 외부 데이터·오류 | `.harness/context/data/AGENTS.md` |
+| API 결과를 UI에 연결 | Data + Presentation |
+| 여러 레이어에 영향 | 영향받는 모든 Context, Lane C |
 
-## Codex Harness
+모든 작업은 이 Root Harness를 읽고 Planner가 필요한 Context만 선택한다. 관련 없는
+Context 문서는 읽지 않는다. 선택 결과는 plan에 기록해 후속 역할이 재탐색하지 않게
+한다.
 
-기능 구현·수정·버그 수정·리팩터링에는 `orderrun-development` Skill을 사용한다.
-코드 읽기, 질문, 문서 작업만이면 이 워크플로우를 시작하지 않는다. 변경 후
-독립 판정만 필요하면 `orderrun-review` Skill을 사용한다.
+## Architecture와 Dependency Rule
 
-워크플로우는 다음 순서를 지킨다.
+| Layer | 책임 |
+|---|---|
+| Presentation | React UI, interaction, routing, 화면 상태와 피드백 |
+| Domain | 플랫폼 독립 비즈니스 모델·판단·검증·상태 전이 |
+| Data | API client, request/response DTO, mapper, API 오류 처리 |
 
-```text
-planner → feature-implementer → reviewer
-                         ↑          │
-                         └─ FIX_REQUIRED (최대 3 라운드)
-```
+허용 방향은 Presentation → Domain, Presentation → Data, Data → Domain이다.
+Domain → Presentation/Data와 순환 의존성은 금지한다. 현재 책임이 없는 레이어나
+Repository/UseCase/Entity/Service를 형식적으로 만들지 않는다.
 
-- **implementer만** `src/` 및 앱/설정 파일을 수정할 수 있다. planner와 reviewer는
-  `_workspace/{slug}/`의 자기 리포트만 작성한다.
-- planner/reviewer 호출 전후에 지정 경로의 `git status --porcelain` 스냅샷을 비교한다.
-  두 역할이 소스를 바꾸면 그 라운드 판정은 무효다.
-- API 엔드포인트·응답 스키마·필드·상태값·권한·경로를 추측하지 않는다. 근거가 없고
-  구현 방향에 영향을 주면 사용자 확인 전 중단한다.
-- `typecheck`, `lint`, `build`가 모두 exit 0이고 reviewer가 PASS해야만 완료다.
-  실행하지 못했거나 읽지 못한 영역은 PASS가 아니라 미검증으로 보고한다.
-- 단일 기존 파일의 문구·상수·스타일·간단한 버그 수정은 경량 레인(implementer →
-  reviewer)을 쓴다. 새 파일/타입/데이터 흐름/화면 또는 애매한 변경은 표준 레인
-  (planner → implementer → reviewer)을 쓴다.
-- 검색 결과, 계획의 관련 파일, 변경 파일만 읽는다. 전체 코드베이스를 매번 탐색하지
-  않는다. 인계 문서는 결정·변경·실패만 기록하고 중복하지 않는다.
+## 전역 불변식
 
-## 프로젝트 규칙
+- 실제 애플리케이션·프로젝트 구현 파일은 Implementer만 수정한다. Planner와
+  Reviewer는 `_workspace/{slug}/`의 지정 산출물 외에는 쓰지 않는다.
+- API endpoint, DTO field, 서버 상태값, 권한, route, 비즈니스 규칙을 추측하지 않는다.
+  구현 방향에 영향을 주는 근거가 없으면 Implementer 전에 사용자에게 확인한다.
+- 새 의존성은 승인 없이 설치하지 않는다.
+- TypeScript strict를 유지하고 type-only import는 `import type`을 사용한다. `enum`,
+  `namespace`, 생성자 parameter property를 쓰지 않는다. `any`, 근거 없는 `as`,
+  `@ts-ignore`, `eslint-disable`로 실패를 숨기지 않는다.
+- 전체 코드베이스와 모든 Harness 문서를 매번 읽지 않는다. 검색 결과, plan의 관련
+  파일, 변경 파일과 직접 연결된 경계만 읽는다.
+- 인계 문서는 결정·변경·실패만 짧게 기록하고 전체 로그·코드·앞 문서를 반복하지 않는다.
 
-`docs/project-conventions.md`는 확인된 사실의 단일 기록이다. 새 의존성이 필요하거나
-문서가 낡았다고 의심될 때만 원본 설정을 재확인한다. 상세 역할·리포트 형식·수정
-루프는 `docs/codex-harness.md`를 따른다.
+## Workflow Harness
 
-## 검증 명령
+Canonical 역할은 다음 세 문서에만 정의한다.
 
-```sh
-npm run typecheck
-npm run lint
-npm run build
-```
+- `.harness/roles/planner.md`
+- `.harness/roles/implementer.md`
+- `.harness/roles/reviewer.md`
 
-세 명령은 독립 실행하고 각각의 exit code로 판정한다. `&&`나 `| tee`로 묶지 않는다.
-검증 로그 전문은 인계 문서에 넣지 말고 실패 줄만 기록한다.
+| Lane | 기준 | 흐름 |
+|---|---|---|
+| A — Lightweight | 단일 기존 파일의 명확한 문구/CSS/아이콘/소규모 수정. 새 파일·계약·타입·의존성 없음 | Implementer → Reviewer |
+| B — Standard | 화면, Component, API 연동, 새 타입 등 일반 기능 또는 애매한 변경 | Planner → Implementer → Reviewer |
+| C — High Risk | 인증·권한·상태 전이·계약·Architecture·다중 Layer·대규모 refactor | Planner → Implementer → Reviewer → 강화 검증 |
+
+불확실하면 높은 Lane을 선택한다. 실행 세부는 `.harness/workflows/`의 해당 문서만
+읽는다. FIX_REQUIRED이면 같은 Implementer가 지적만 수정하고 Reviewer가 재검증한다.
+
+## Verification Harness와 완료
+
+Reviewer는 `.harness/rules/verification.md`에 따라 typecheck, lint, production build를
+각각 실행하고 요구사항·선택 Context 규칙을 함께 검토한다. 하나라도 실패하거나
+BLOCKER/MAJOR가 있으면 FIX_REQUIRED다. 실행·확인하지 못한 runtime, UX, 접근성,
+테스트 영역은 미검증으로 보고하며 PASS로 표현하지 않는다.
+
+Git/commit/PR은 `.harness/rules/git.md`, 규칙 학습·승격은 `.harness/evolution/`을
+따른다. 사용자가 명시하지 않으면 commit, push, PR을 수행하지 않는다.
+
+## Runtime Adapter parity
+
+Claude와 Codex는 동일한 Root/Context/Role/Workflow/Verification 문서를 사용한다.
+달라질 수 있는 것은 Agent를 생성·재개하는 네이티브 호출 방식뿐이며, 그 차이가
+역할 권한·순서·검증·판정을 바꾸면 안 된다.

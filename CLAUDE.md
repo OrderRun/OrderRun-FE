@@ -1,21 +1,9 @@
-# OrderRun-FE
+# Claude Code Adapter — OrderRun-FE
 
-꼬붕단 관리자 웹 (React + TypeScript + Vite). 운영자가 Request / Application / Mission의 상태를 관리하고, 분쟁 발생 시 관련 데이터와 진행 과정을 추적·대응하기 위한 어드민.
+항상 Root [`AGENTS.md`](AGENTS.md)를 프로젝트 규칙과 Context Router로 사용한다.
+Planner가 선택한 `.harness/context/{presentation|domain|data}/AGENTS.md`만 추가로 읽는다.
 
-## 하네스: OrderRun-FE 기능 개발
-
-**목표:** 검증되지 않은 코드가 "완료"로 선언되는 것을 구조적으로 막는다. 구현 에이전트와 판정 에이전트를 분리하고, typecheck / lint / build를 통과해야만 완료로 인정한다.
-
-**트리거:** 기능 구현·수정·버그 수정·리팩터링 등 코드 변경 작업 요청 시 `orderrun-dev` 스킬을 사용하라. 후속 작업(재실행, 지적 반영, 검증만 다시)도 같은 스킬을 사용한다. 단순 질문이나 코드 읽기만 필요한 경우에는 사용하지 않는다.
-
-**규칙 축적 지점:** 반복되는 실수나 새로 정해진 프로젝트 규칙은 `.claude/skills/feature-development/references/project-conventions.md`에 추가한다. 이 문서는 스택·컴파일러 제약·검증 명령의 확정 기록이므로, 에이전트는 매 작업마다 `package.json`·`tsconfig`를 재조사하지 않고 이 문서를 읽는다.
-
-**변경 이력:**
-
-| 날짜 | 변경 내용 | 대상 | 사유 |
-|------|----------|------|------|
-| 2026-08-20 | 초기 구성 — 에이전트 5, 스킬 5 | 전체 | 하네스 구축 |
-| 2026-08-20 | lint 게이트를 `--max-warnings 0`으로 강화 | package.json | 경고가 exit 0으로 통과해 검증 게이트가 무력화되는 것을 방지 |
-| 2026-08-20 | 판정 에이전트를 `Explore`/`Plan` → `general-purpose` + 쓰기 범위 제한 + 소스 무변경 가드 | orderrun-dev, agents 3종 | 드라이런: 읽기 전용 타입은 자기 리포트 파일조차 쓸 수 없어 워크플로우가 끊김 |
-| 2026-08-20 | 스모크 테스트 지적 13건 반영 (도구 이름 대신 행위 기술, 가드 베이스라인, 템플릿 단일화, PIPESTATUS, 파일 수 하한 명시 등) | 스킬·에이전트 전반 | 검증·조사 에이전트 실행 테스트에서 발견 |
-| 2026-08-20 | **경량화**: 에이전트 5→3(planner/implementer/reviewer), 스킬 5→3, 산출물 5→3, 리뷰+검증 단일 호출 통합, 레인 A/B 도입, 읽기 범위·리포트 길이 상한 명시 | 전체 | 개인 프로젝트 대비 호출·토큰 비용 과다. 검증 게이트·소스 수정 권한·추측 금지 규칙은 유지 |
+기능·수정·버그·리팩터링은 `orderrun-development`, 독립 검증은 `orderrun-review`를
+사용한다. `.claude/agents/`는 canonical `.harness/roles/`를 실행하기 위한 Claude
+custom-agent Adapter다. 공통 역할·Lane·규칙·판정을 이 파일이나 `.claude/`에 별도로
+정의하지 않는다.
