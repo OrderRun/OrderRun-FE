@@ -1,0 +1,58 @@
+// UI 개발용 임시 데이터. 서버 계약/Domain 모델이 아니며 연동 시 이 디렉토리를 통째로 삭제한다.
+
+import type { DemoDispute } from './demoTypes'
+
+export const DEMO_DISPUTES: DemoDispute[] = [
+  {
+    disputeId: 'D-61',
+    proposalId: 'P-1029',
+    offerId: 'O-399',
+    missionId: 'M-189',
+    requesterName: '강태오',
+    requesterRole: '행님',
+    targetName: '도경수',
+    targetRole: '꼬붕',
+    reason: '약속한 시간에 미션이 시작되지 않았고 연락이 닿지 않습니다.',
+    status: '미처리',
+    requestedAt: '2026-08-20 09:14',
+  },
+  {
+    disputeId: 'D-59',
+    proposalId: 'P-1028',
+    offerId: 'O-397',
+    missionId: 'M-187',
+    requesterName: '진태현',
+    requesterRole: '꼬붕',
+    targetName: '조은비',
+    targetRole: '행님',
+    reason: '미션 범위를 벗어난 추가 작업을 요구받았습니다.',
+    status: '미처리',
+    requestedAt: '2026-08-19 21:05',
+  },
+  {
+    disputeId: 'D-58',
+    proposalId: 'P-1020',
+    offerId: 'O-392',
+    missionId: 'M-182',
+    requesterName: '한지우',
+    requesterRole: '행님',
+    targetName: '백지훈',
+    targetRole: '꼬붕',
+    reason: '미션 결과물이 요청 내용과 다릅니다.',
+    status: '처리 완료',
+    requestedAt: '2026-08-17 09:32',
+  },
+  {
+    disputeId: 'D-55',
+    proposalId: 'P-1008',
+    offerId: 'O-380',
+    missionId: 'M-175',
+    requesterName: '천유빈',
+    requesterRole: '꼬붕',
+    targetName: '백승우',
+    targetRole: '행님',
+    reason: '미션 완료 후 확인이 지연되었습니다.',
+    status: '처리 완료',
+    requestedAt: '2026-08-13 08:20',
+  },
+]
