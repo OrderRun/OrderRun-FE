@@ -56,3 +56,11 @@ recorded in `changelog.md` with date, change, updated shared source, and reason.
 - Impact: Commit history loses purpose and becomes harder to scan or automate against.
 - Candidate rule and narrow target: Define one closed Conventional Commit format and summary policy in `rules/git.md`.
 - Decision: promoted — the user explicitly confirmed this project-wide convention.
+
+## 2026-08-21 — Promotion PR authority and content
+
+- Area/role: Git, PR, and release handoff
+- Cause and recurrence risk: Treating PR creation as merge authority can accidentally cross a deployment boundary, while generic PR text can hide the actual promoted changes.
+- Impact: `main` may be merged or deployed without a distinct decision, and reviewers may lack diff-backed change context.
+- Candidate rule and narrow target: Separate `dev` to `main` PR creation from merge authority and require a diff-derived PR body in `rules/git.md`.
+- Decision: promoted — the user explicitly confirmed this project-wide workflow.
