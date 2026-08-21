@@ -1,0 +1,66 @@
+// UI 개발용 임시 데이터. 서버 계약/Domain 모델이 아니며 연동 시 이 디렉토리를 통째로 삭제한다.
+
+import type { DemoRefund } from './demoTypes'
+
+export const DEMO_REFUNDS: DemoRefund[] = [
+  {
+    proposalId: 'P-1020',
+    hyungnimName: '한지우',
+    amount: 72000,
+    status: '환불 필요',
+    reason: '분쟁 처리 결과에 따른 환불 요청',
+    requestedAt: '2026-08-20 10:02',
+    processedAt: null,
+    adminNote: '',
+  },
+  {
+    proposalId: 'P-1012',
+    hyungnimName: '오세영',
+    amount: 88000,
+    status: '환불 필요',
+    reason: '요청 취소로 인한 결제 금액 환불',
+    requestedAt: '2026-08-14 11:20',
+    processedAt: null,
+    adminNote: '',
+  },
+  {
+    proposalId: 'P-1002',
+    hyungnimName: '문가온',
+    amount: 52000,
+    status: '환불 필요',
+    reason: '지원자가 없어 요청이 취소됨',
+    requestedAt: '2026-08-09 09:40',
+    processedAt: null,
+    adminNote: '',
+  },
+  {
+    proposalId: 'P-1026',
+    hyungnimName: '장미르',
+    amount: 25000,
+    status: '환불 필요',
+    reason: '행님 요청으로 요청 취소',
+    requestedAt: '2026-08-18 15:11',
+    processedAt: null,
+    adminNote: 'PG사 환불 요청 접수 완료.',
+  },
+  {
+    proposalId: 'P-1008',
+    hyungnimName: '백승우',
+    amount: 41000,
+    status: '환불 완료',
+    reason: '분쟁 처리 결과 일부 금액 환불',
+    requestedAt: '2026-08-13 10:30',
+    processedAt: '2026-08-14 14:05',
+    adminNote: '분쟁 처리 완료 후 전액 환불 처리함.',
+  },
+  {
+    proposalId: 'P-1005',
+    hyungnimName: '남기훈',
+    amount: 63000,
+    status: '환불 실패',
+    reason: '요청 취소로 인한 결제 금액 환불',
+    requestedAt: '2026-08-10 09:15',
+    processedAt: '2026-08-11 10:40',
+    adminNote: '결제 수단 만료로 환불 실패. 재시도 필요.',
+  },
+]
