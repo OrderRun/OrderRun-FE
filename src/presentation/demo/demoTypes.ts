@@ -1,7 +1,5 @@
 // UI 개발용 임시 데이터. 서버 계약/Domain 모델이 아니며 연동 시 이 디렉토리를 통째로 삭제한다.
 
-import type { RequestTabKey } from '../pages/requests/requestTabs'
-
 export type DemoRequestStatus =
   | '미입금'
   | '대기중'
@@ -20,22 +18,22 @@ export type DemoOfferStatus =
 
 export type DemoMissionStatus = '진행중' | '완료' | '취소' | '분쟁중'
 
-export type DemoDisputeStatus = '미처리' | '처리 완료'
-
-export type DemoRefundStatus = '환불 필요' | '환불 완료' | '환불 실패'
+/** 신고·분쟁·환불이 공유하는 처리 상태. Proposal/지원의 진행 상태와는 다른 축이다. */
+export type DemoProcessStatus = '미처리' | '처리 완료' | '반려'
 
 export type DemoStatusLabel =
   | DemoRequestStatus
   | DemoOfferStatus
   | DemoMissionStatus
-  | DemoDisputeStatus
-  | DemoRefundStatus
+  | DemoProcessStatus
 
 export type DemoActorRole = '행님' | '꼬붕'
 
 export interface DemoRequest {
   proposalId: string
   hyungnimName: string
+  /** 행님이 입금 시 기재한 입금자명. */
+  depositorName: string
   amount: number
   status: DemoRequestStatus
   createdAt: string
@@ -63,6 +61,13 @@ export interface DemoMission {
   status: DemoMissionStatus
   openChatUrl: string
   createdAt: string
+  /** 꼬붕에게 줄 수행비. */
+  payoutAmount: number
+  payoutAccount: string
+  payoutAccountHolder: string
+  /** 수행비 입금 처리 여부. 완료된 미션만 대상이다. */
+  settlementStatus: DemoProcessStatus
+  settledAt: string | null
 }
 
 export interface DemoDispute {
@@ -75,34 +80,31 @@ export interface DemoDispute {
   targetName: string
   targetRole: DemoActorRole
   reason: string
-  status: DemoDisputeStatus
+  status: DemoProcessStatus
   requestedAt: string
 }
 
 export interface DemoRefund {
   proposalId: string
   hyungnimName: string
+  /** 환불금을 받을 행님 계좌. */
+  refundAccount: string
+  /** 환불 계좌 예금주명. */
+  accountHolderName: string
   amount: number
-  status: DemoRefundStatus
+  status: DemoProcessStatus
   reason: string
   requestedAt: string
   processedAt: string | null
   adminNote: string
 }
 
-export type DemoTaskType = '요청' | '분쟁' | '환불'
-
-export interface DemoTaskItem {
-  taskId: string
-  type: DemoTaskType
-  proposalId: string
-  status: DemoStatusLabel
-  content: string
-  occurredAt: string
-  tab: RequestTabKey | null
-}
-
-export type DemoSummaryCardKey = 'unpaid' | 'dispute' | 'refund' | 'report'
+export type DemoSummaryCardKey =
+  | 'unpaid'
+  | 'dispute'
+  | 'refund'
+  | 'report'
+  | 'settlement'
 
 export interface DemoSummaryCard {
   key: DemoSummaryCardKey
@@ -114,7 +116,7 @@ export interface DemoSummaryCard {
 export interface DemoRequestSummary {
   request: DemoRequest
   offerCount: number
-  refundStatus: DemoRefundStatus | null
+  refundStatus: DemoProcessStatus | null
 }
 
 export interface DemoProposalReport {
@@ -125,6 +127,6 @@ export interface DemoProposalReport {
   reasonQuestionText: string
   detailReason?: string
   reportedAt: string
-  reportStatus: DemoDisputeStatus
+  reportStatus: DemoProcessStatus
   proposalStatus: DemoRequestStatus
 }

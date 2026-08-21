@@ -5,10 +5,14 @@ import { StatusBadge } from '../../../components/StatusBadge'
 
 interface StatusChangeModalProps {
   open: boolean
+  title?: string
+  confirmLabel?: string
   proposalId: string
   currentStatus: string
   nextStatus: string
   requiresOpenChatUrl?: boolean
+  depositAccount?: string
+  depositorName?: string
   destructive?: boolean
   guide?: string
   notices?: string[]
@@ -37,10 +41,14 @@ export function StatusChangeModal(props: StatusChangeModalProps) {
 }
 
 function StatusChangeModalContent({
+  title = '상태 변경',
+  confirmLabel,
   proposalId,
   currentStatus,
   nextStatus,
   requiresOpenChatUrl = false,
+  depositAccount,
+  depositorName,
   destructive = false,
   guide,
   notices,
@@ -58,7 +66,7 @@ function StatusChangeModalContent({
   return (
     <Modal
       open
-      title="상태 변경"
+      title={title}
       onClose={onClose}
       footer={
         <>
@@ -70,7 +78,7 @@ function StatusChangeModalContent({
             disabled={confirmDisabled}
             onClick={() => onConfirm(trimmedUrl)}
           >
-            {toChangeLabel(nextStatus)}
+            {confirmLabel ?? toChangeLabel(nextStatus)}
           </Button>
         </>
       }
@@ -89,6 +97,19 @@ function StatusChangeModalContent({
           </span>
         </div>
       </div>
+
+      {depositAccount !== undefined && depositorName !== undefined ? (
+        <div className="or-panel">
+          <div className="or-kv-row">
+            <span className="or-kv-label">입금 계좌</span>
+            <span className="or-kv-value">{depositAccount}</span>
+          </div>
+          <div className="or-kv-row">
+            <span className="or-kv-label">입금자명</span>
+            <span className="or-kv-value">{depositorName}</span>
+          </div>
+        </div>
+      ) : null}
 
       {requiresOpenChatUrl ? (
         <label className="or-field">

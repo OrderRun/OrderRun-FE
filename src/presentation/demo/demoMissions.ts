@@ -2,6 +2,8 @@
 
 import type { DemoMission } from './demoTypes'
 
+/** 완료된 미션은 꼬붕에게 수행비를 입금해야 한다. */
+
 export const DEMO_MISSIONS: DemoMission[] = [
   {
     missionId: 'M-193',
@@ -12,6 +14,11 @@ export const DEMO_MISSIONS: DemoMission[] = [
     status: '진행중',
     openChatUrl: 'https://open.kakao.com/o/gM193abc',
     createdAt: '2026-08-20 15:36',
+    payoutAmount: 80000,
+    payoutAccount: '국민은행 429-21-0038172',
+    payoutAccountHolder: '임도윤',
+    settlementStatus: '미처리',
+    settledAt: null,
   },
   {
     missionId: 'M-191',
@@ -22,6 +29,11 @@ export const DEMO_MISSIONS: DemoMission[] = [
     status: '진행중',
     openChatUrl: 'https://open.kakao.com/o/gM191vwx',
     createdAt: '2026-08-20 11:24',
+    payoutAmount: 55000,
+    payoutAccount: '신한은행 110-338-902471',
+    payoutAccountHolder: '안소미',
+    settlementStatus: '미처리',
+    settledAt: null,
   },
   {
     missionId: 'M-189',
@@ -32,6 +44,11 @@ export const DEMO_MISSIONS: DemoMission[] = [
     status: '분쟁중',
     openChatUrl: 'https://open.kakao.com/o/gM189def',
     createdAt: '2026-08-19 19:21',
+    payoutAmount: 95000,
+    payoutAccount: '토스뱅크 1000-8823-4471',
+    payoutAccountHolder: '도경수',
+    settlementStatus: '미처리',
+    settledAt: null,
   },
   {
     missionId: 'M-187',
@@ -42,6 +59,11 @@ export const DEMO_MISSIONS: DemoMission[] = [
     status: '분쟁중',
     openChatUrl: 'https://open.kakao.com/o/gM187ghi',
     createdAt: '2026-08-19 14:48',
+    payoutAmount: 47000,
+    payoutAccount: '카카오뱅크 3333-04-8827301',
+    payoutAccountHolder: '진태현',
+    settlementStatus: '미처리',
+    settledAt: null,
   },
   {
     missionId: 'M-186',
@@ -52,6 +74,11 @@ export const DEMO_MISSIONS: DemoMission[] = [
     status: '완료',
     openChatUrl: 'https://open.kakao.com/o/gM186jkl',
     createdAt: '2026-08-18 20:51',
+    payoutAmount: 150000,
+    payoutAccount: '우리은행 1002-472-118203',
+    payoutAccountHolder: '우다인',
+    settlementStatus: '미처리',
+    settledAt: null,
   },
   {
     missionId: 'M-183',
@@ -62,6 +89,11 @@ export const DEMO_MISSIONS: DemoMission[] = [
     status: '진행중',
     openChatUrl: 'https://open.kakao.com/o/gM183mno',
     createdAt: '2026-08-17 10:45',
+    payoutAmount: 60000,
+    payoutAccount: '하나은행 391-772019-31207',
+    payoutAccountHolder: '조하람',
+    settlementStatus: '미처리',
+    settledAt: null,
   },
   {
     missionId: 'M-182',
@@ -69,9 +101,14 @@ export const DEMO_MISSIONS: DemoMission[] = [
     offerId: 'O-392',
     hyungnimName: '한지우',
     kkobungName: '백지훈',
-    status: '분쟁중',
+    status: '취소',
     openChatUrl: 'https://open.kakao.com/o/gM182pqr',
     createdAt: '2026-08-16 17:12',
+    payoutAmount: 72000,
+    payoutAccount: '국민은행 812-24-9928471',
+    payoutAccountHolder: '백지훈',
+    settlementStatus: '미처리',
+    settledAt: null,
   },
   {
     missionId: 'M-175',
@@ -82,5 +119,10 @@ export const DEMO_MISSIONS: DemoMission[] = [
     status: '완료',
     openChatUrl: 'https://open.kakao.com/o/gM175stu',
     createdAt: '2026-08-12 12:38',
+    payoutAmount: 41000,
+    payoutAccount: '신한은행 110-901-338271',
+    payoutAccountHolder: '천유빈',
+    settlementStatus: '처리 완료',
+    settledAt: '2026-08-13 09:20',
   },
 ]

@@ -20,14 +20,13 @@ const TONE_BY_LABEL: Record<string, StatusTone> = {
   분쟁중: 'crimson',
   미처리: 'rose',
   '처리 완료': 'green',
-  '환불 필요': 'rose',
-  '환불 완료': 'green',
-  '환불 실패': 'crimson',
+  '반려': 'crimson',
+  환불: 'gray',
+  신고: 'gray',
   행님: 'violet',
   꼬붕: 'cobalt',
   '진행 중': 'indigo',
   '분쟁 중': 'crimson',
-  '환불 확인 필요': 'gray',
 }
 
 /** 배지 알약 대신 회색 평문으로 표시하는 상태 라벨. */

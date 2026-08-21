@@ -2,12 +2,15 @@
 
 import type { DemoRefund } from './demoTypes'
 
+/** 환불은 입금이 끝난 요청이 취소되었을 때만 생긴다. 요청 상태는 항상 '취소'다. */
 export const DEMO_REFUNDS: DemoRefund[] = [
   {
     proposalId: 'P-1020',
     hyungnimName: '한지우',
+    refundAccount: '국민은행 812302-04-118293',
+    accountHolderName: '한지우',
     amount: 72000,
-    status: '환불 필요',
+    status: '미처리',
     reason: '분쟁 처리 결과에 따른 환불 요청',
     requestedAt: '2026-08-20 10:02',
     processedAt: null,
@@ -16,8 +19,10 @@ export const DEMO_REFUNDS: DemoRefund[] = [
   {
     proposalId: 'P-1012',
     hyungnimName: '오세영',
+    refundAccount: '신한은행 110-472-993018',
+    accountHolderName: '오세영',
     amount: 88000,
-    status: '환불 필요',
+    status: '미처리',
     reason: '요청 취소로 인한 결제 금액 환불',
     requestedAt: '2026-08-14 11:20',
     processedAt: null,
@@ -26,8 +31,10 @@ export const DEMO_REFUNDS: DemoRefund[] = [
   {
     proposalId: 'P-1002',
     hyungnimName: '문가온',
+    refundAccount: '토스뱅크 1000-4820-1937',
+    accountHolderName: '문가온',
     amount: 52000,
-    status: '환불 필요',
+    status: '미처리',
     reason: '지원자가 없어 요청이 취소됨',
     requestedAt: '2026-08-09 09:40',
     processedAt: null,
@@ -36,31 +43,25 @@ export const DEMO_REFUNDS: DemoRefund[] = [
   {
     proposalId: 'P-1026',
     hyungnimName: '장미르',
+    refundAccount: '카카오뱅크 3333-19-4820174',
+    accountHolderName: '장미르',
     amount: 25000,
-    status: '환불 필요',
+    status: '미처리',
     reason: '행님 요청으로 요청 취소',
     requestedAt: '2026-08-18 15:11',
     processedAt: null,
     adminNote: 'PG사 환불 요청 접수 완료.',
   },
   {
-    proposalId: 'P-1008',
-    hyungnimName: '백승우',
-    amount: 41000,
-    status: '환불 완료',
-    reason: '분쟁 처리 결과 일부 금액 환불',
-    requestedAt: '2026-08-13 10:30',
-    processedAt: '2026-08-14 14:05',
-    adminNote: '분쟁 처리 완료 후 전액 환불 처리함.',
-  },
-  {
     proposalId: 'P-1005',
     hyungnimName: '남기훈',
+    refundAccount: '하나은행 391-910238-72107',
+    accountHolderName: '남기훈',
     amount: 63000,
-    status: '환불 실패',
+    status: '반려',
     reason: '요청 취소로 인한 결제 금액 환불',
     requestedAt: '2026-08-10 09:15',
     processedAt: '2026-08-11 10:40',
-    adminNote: '결제 수단 만료로 환불 실패. 재시도 필요.',
+    adminNote: '환불 사유가 확인되지 않아 반려함.',
   },
 ]

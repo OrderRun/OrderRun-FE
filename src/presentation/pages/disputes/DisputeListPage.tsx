@@ -1,16 +1,15 @@
 import { useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { DataTable } from '../../components/DataTable'
 import { FilterSelect } from '../../components/FilterSelect'
 import { PageHeader } from '../../components/PageHeader'
 import { SearchInput } from '../../components/SearchInput'
-import { StatusBadge } from '../../components/StatusBadge'
 import { formatCount } from '../../components/formatters'
 import { DEMO_DISPUTES } from '../../demo/demoDisputes'
 import { useQueryState } from '../../hooks/useQueryState'
 import { requestDetailPath } from '../../routes/paths'
+import { DisputeTable } from './DisputeTable'
 
-const STATUS_OPTIONS = ['전체', '미처리', '처리 완료']
+const STATUS_OPTIONS = ['전체', '미처리', '처리 완료', '반려']
 
 const QUERY_DEFAULTS = { q: '', status: '전체' }
 
@@ -62,9 +61,8 @@ export function DisputeListPage() {
           <span className="or-result-count">{formatCount(rows.length)}</span>
         </div>
 
-        <DataTable
+        <DisputeTable
           rows={rows}
-          rowKey={(dispute) => dispute.disputeId}
           emptyMessage="조건에 맞는 분쟁이 없습니다."
           emptyHint="검색어나 필터 조건을 변경해 보세요."
           onRowClick={(dispute) =>
@@ -72,58 +70,6 @@ export function DisputeListPage() {
               state: { from: location.pathname + location.search },
             })
           }
-          columns={[
-            {
-              key: 'disputeId',
-              header: '분쟁 ID',
-              width: '100px',
-              render: (dispute) => (
-                <span className="or-cell-id">{dispute.disputeId}</span>
-              ),
-            },
-            {
-              key: 'proposalId',
-              header: '요청 ID',
-              width: '100px',
-              render: (dispute) => (
-                <span className="or-cell-id">{dispute.proposalId}</span>
-              ),
-            },
-            {
-              key: 'offerId',
-              header: '지원 ID',
-              width: '100px',
-              render: (dispute) => (
-                <span className="or-cell-id">{dispute.offerId}</span>
-              ),
-            },
-            {
-              key: 'requester',
-              header: '신청자',
-              width: '120px',
-              render: (dispute) => dispute.requesterName,
-            },
-            {
-              key: 'requesterRole',
-              header: '역할',
-              width: '80px',
-              render: (dispute) => <StatusBadge label={dispute.requesterRole} />,
-            },
-            {
-              key: 'status',
-              header: '상태',
-              width: '100px',
-              render: (dispute) => <StatusBadge label={dispute.status} />,
-            },
-            {
-              key: 'requestedAt',
-              header: '신청일',
-              width: '140px',
-              render: (dispute) => (
-                <span className="or-cell-muted">{dispute.requestedAt}</span>
-              ),
-            },
-          ]}
         />
       </section>
     </>

@@ -5,7 +5,6 @@ import { DisputeListPage } from '../pages/disputes/DisputeListPage'
 import { MissionListPage } from '../pages/missions/MissionListPage'
 import { OfferListPage } from '../pages/offers/OfferListPage'
 import { RefundListPage } from '../pages/refunds/RefundListPage'
-import { ReportDetailPage } from '../pages/reports/ReportDetailPage'
 import { ReportListPage } from '../pages/reports/ReportListPage'
 import { RequestDetailPage } from '../pages/requests/RequestDetailPage'
 import { RequestListPage } from '../pages/requests/RequestListPage'
@@ -25,7 +24,6 @@ export function AppRouter() {
           <Route path={PATHS.disputes} element={<DisputeListPage />} />
           <Route path={PATHS.refunds} element={<RefundListPage />} />
           <Route path={PATHS.reports} element={<ReportListPage />} />
-          <Route path={PATHS.reportDetail} element={<ReportDetailPage />} />
         </Route>
         <Route path="*" element={<Navigate to={PATHS.dashboard} replace />} />
       </Routes>

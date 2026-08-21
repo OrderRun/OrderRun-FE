@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { ConfirmModal } from '../../../components/ConfirmModal'
 import { StatusBadge } from '../../../components/StatusBadge'
 import { formatCount } from '../../../components/formatters'
@@ -9,11 +10,19 @@ interface CancelRequestConfirmModalProps {
   offerCount: number
   refundRequired: boolean
   onClose: () => void
-  onConfirm: () => void
+  onConfirm: (adminNote: string) => void
 }
 
-export function CancelRequestConfirmModal({
-  open,
+export function CancelRequestConfirmModal(
+  props: CancelRequestConfirmModalProps,
+) {
+  if (!props.open) {
+    return null
+  }
+  return <CancelRequestConfirmModalContent {...props} />
+}
+
+function CancelRequestConfirmModalContent({
   proposalId,
   currentStatus,
   offerCount,
@@ -21,16 +30,18 @@ export function CancelRequestConfirmModal({
   onClose,
   onConfirm,
 }: CancelRequestConfirmModalProps) {
+  const [adminNote, setAdminNote] = useState('')
+
   return (
     <ConfirmModal
-      open={open}
+      open
       title="요청을 취소하시겠습니까?"
       description="아직 미션이 생성되지 않았습니다."
       confirmLabel="요청 취소"
       confirmVariant="destructive"
       closeLabel="닫기"
       onClose={onClose}
-      onConfirm={onConfirm}
+      onConfirm={() => onConfirm(adminNote.trim())}
     >
       <div className="or-panel">
         <div className="or-kv-row">
@@ -59,6 +70,16 @@ export function CancelRequestConfirmModal({
           <li>입금 전 요청이라 환불 처리는 필요하지 않습니다.</li>
         )}
       </ul>
+
+      <label className="or-field">
+        <span className="or-field-label">관리자 메모 (선택)</span>
+        <textarea
+          className="or-textarea"
+          value={adminNote}
+          placeholder="취소 사유나 확인한 내용을 남겨주세요."
+          onChange={(event) => setAdminNote(event.target.value)}
+        />
+      </label>
     </ConfirmModal>
   )
 }

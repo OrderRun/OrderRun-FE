@@ -2,6 +2,7 @@
 
 import type { DemoProposalReport } from './demoTypes'
 
+/** 신고는 지원자를 선택하기 전인 '대기중' 요청에만 접수될 수 있다. */
 export const DEMO_PROPOSAL_REPORTS: DemoProposalReport[] = [
   {
     reportId: 'R-204',
@@ -15,6 +16,27 @@ export const DEMO_PROPOSAL_REPORTS: DemoProposalReport[] = [
     proposalStatus: '대기중',
   },
   {
+    reportId: 'R-203',
+    targetType: 'Proposal',
+    proposalId: 'P-1033',
+    reporterId: 'U-355',
+    reasonQuestionText: '거래 내용이 의심스러워요.',
+    detailReason: '외부 메신저로 유도했습니다.',
+    reportedAt: '2026-08-21 10:52',
+    reportStatus: '미처리',
+    proposalStatus: '대기중',
+  },
+  {
+    reportId: 'R-202',
+    targetType: 'Proposal',
+    proposalId: 'P-1033',
+    reporterId: 'U-198',
+    reasonQuestionText: '중복된 요청이에요.',
+    reportedAt: '2026-08-21 09:31',
+    reportStatus: '처리 완료',
+    proposalStatus: '대기중',
+  },
+  {
     reportId: 'R-201',
     targetType: 'Proposal',
     proposalId: 'P-1032',
@@ -24,15 +46,5 @@ export const DEMO_PROPOSAL_REPORTS: DemoProposalReport[] = [
     reportedAt: '2026-08-20 18:42',
     reportStatus: '미처리',
     proposalStatus: '대기중',
-  },
-  {
-    reportId: 'R-198',
-    targetType: 'Proposal',
-    proposalId: 'P-1030',
-    reporterId: 'U-271',
-    reasonQuestionText: '중복된 요청이에요.',
-    reportedAt: '2026-08-20 12:07',
-    reportStatus: '처리 완료',
-    proposalStatus: '진행중',
   },
 ]

@@ -1,21 +1,19 @@
 import { useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { DataTable } from '../../components/DataTable'
 import { FilterSelect } from '../../components/FilterSelect'
 import { PageHeader } from '../../components/PageHeader'
 import { SearchInput } from '../../components/SearchInput'
-import { StatusBadge } from '../../components/StatusBadge'
-import { formatAmount, formatCount } from '../../components/formatters'
+import { formatCount } from '../../components/formatters'
 import { DEMO_REFUNDS } from '../../demo/demoRefunds'
-import { findDemoRequestStatus } from '../../demo/demoSelectors'
 import { useQueryState } from '../../hooks/useQueryState'
 import { requestDetailPath } from '../../routes/paths'
+import { RefundTable } from './RefundTable'
 
 const STATUS_OPTIONS = [
   '전체',
-  '환불 필요',
-  '환불 완료',
-  '환불 실패',
+  '미처리',
+  '처리 완료',
+  '반려',
 ]
 
 const QUERY_DEFAULTS = { q: '', status: '전체', from: '' }
@@ -63,7 +61,7 @@ export function RefundListPage() {
             onChange={(value) => set('q', value)}
           />
           <FilterSelect
-            label="환불 상태"
+            label="처리 여부"
             value={status}
             options={STATUS_OPTIONS}
             onChange={(value) => set('status', value)}
@@ -80,9 +78,8 @@ export function RefundListPage() {
           <span className="or-result-count">{formatCount(rows.length)}</span>
         </div>
 
-        <DataTable
+        <RefundTable
           rows={rows}
-          rowKey={(refund) => refund.proposalId}
           emptyMessage="조건에 맞는 환불 요청이 없습니다."
           emptyHint="검색어나 필터 조건을 변경해 보세요."
           onRowClick={(refund) =>
@@ -90,69 +87,6 @@ export function RefundListPage() {
               state: { from: location.pathname + location.search },
             })
           }
-          columns={[
-            {
-              key: 'proposalId',
-              header: '요청 ID',
-              width: '100px',
-              render: (refund) => (
-                <span className="or-cell-id">{refund.proposalId}</span>
-              ),
-            },
-            {
-              key: 'hyungnim',
-              header: '행님',
-              width: '100px',
-              render: (refund) => refund.hyungnimName,
-            },
-            {
-              key: 'amount',
-              header: '환불 금액',
-              width: '110px',
-              align: 'right',
-              render: (refund) => (
-                <span className="or-cell-amount">{formatAmount(refund.amount)}</span>
-              ),
-            },
-            {
-              key: 'requestStatus',
-              header: '요청 상태',
-              width: '90px',
-              render: (refund) => {
-                const requestStatus = findDemoRequestStatus(refund.proposalId)
-                return requestStatus ? (
-                  <StatusBadge label={requestStatus} />
-                ) : (
-                  <span className="or-flag-off">해당 없음</span>
-                )
-              },
-            },
-            {
-              key: 'refundStatus',
-              header: '환불 상태',
-              width: '110px',
-              render: (refund) => <StatusBadge label={refund.status} />,
-            },
-            {
-              key: 'requestedAt',
-              header: '요청일',
-              width: '140px',
-              render: (refund) => (
-                <span className="or-cell-muted">{refund.requestedAt}</span>
-              ),
-            },
-            {
-              key: 'processedAt',
-              header: '처리일',
-              width: '140px',
-              render: (refund) =>
-                refund.processedAt ? (
-                  <span className="or-cell-muted">{refund.processedAt}</span>
-                ) : (
-                  <span className="or-flag-off">미처리</span>
-                ),
-            },
-          ]}
         />
       </section>
     </>

@@ -18,6 +18,7 @@ interface DisputeResolveModalProps {
   targets: CascadeTarget[]
   onClose: () => void
   onConfirm: (outcome: DisputeOutcome, note: string) => void
+  onReject: (note: string) => void
 }
 
 const OUTCOMES: DisputeOutcome[] = ['미션 완료', '미션 취소']
@@ -38,6 +39,7 @@ function DisputeResolveModalContent({
   targets,
   onClose,
   onConfirm,
+  onReject,
 }: DisputeResolveModalProps) {
   const [outcome, setOutcome] = useState<DisputeOutcome | null>(null)
   const [note, setNote] = useState('')
@@ -50,7 +52,10 @@ function DisputeResolveModalContent({
       footer={
         <>
           <Button variant="secondary" onClick={onClose}>
-            취소
+            닫기
+          </Button>
+          <Button variant="destructive" onClick={() => onReject(note.trim())}>
+            반려
           </Button>
           <Button
             variant="primary"
@@ -100,9 +105,15 @@ function DisputeResolveModalContent({
                   {target.label} #{target.id}
                 </span>
                 <span className="or-transition">
-                  <StatusBadge label={target.currentStatus} />
+                  <StatusBadge
+                    label={target.currentStatus}
+                    shape={target.label === '미션' ? 'pill' : 'square'}
+                  />
                   <span className="or-transition-arrow">→</span>
-                  <StatusBadge label={nextStatusOf(outcome)} />
+                  <StatusBadge
+                    label={nextStatusOf(outcome)}
+                    shape={target.label === '미션' ? 'pill' : 'square'}
+                  />
                 </span>
               </div>
             ))}

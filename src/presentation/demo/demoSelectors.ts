@@ -17,10 +17,10 @@ import type {
   DemoRequestSummary,
 } from './demoTypes'
 
-export function findDemoProposalReport(
-  reportId: string,
-): DemoProposalReport | undefined {
-  return DEMO_PROPOSAL_REPORTS.find((report) => report.reportId === reportId)
+export function findDemoReportsOf(proposalId: string): DemoProposalReport[] {
+  return DEMO_PROPOSAL_REPORTS.filter(
+    (report) => report.proposalId === proposalId,
+  )
 }
 
 export function findDemoRequest(proposalId: string): DemoRequest | undefined {

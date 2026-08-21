@@ -6,16 +6,17 @@ import { InfoCard } from '../../components/InfoCard'
 import { PageHeader } from '../../components/PageHeader'
 import { StatusBadge } from '../../components/StatusBadge'
 import { Tabs } from '../../components/Tabs'
-import { formatAmount, formatCount } from '../../components/formatters'
+import { formatAmount } from '../../components/formatters'
 import {
   findDemoDispute,
   findDemoMission,
   findDemoOffersOf,
   findDemoRefund,
+  findDemoReportsOf,
   findDemoRequest,
 } from '../../demo/demoSelectors'
 import type {
-  DemoDisputeStatus,
+  DemoProcessStatus,
   DemoMissionStatus,
   DemoOfferStatus,
   DemoRequestStatus,
@@ -25,6 +26,7 @@ import {
   originLabelOf,
   readOriginPath,
 } from '../../routes/listOrigin'
+import { DEMO_DEPOSIT_ACCOUNT } from '../../demo/demoRequests'
 import type { DisputeOutcome } from '../disputes/modals/DisputeResolveModal'
 import { CancelRequestConfirmModal } from './modals/CancelRequestConfirmModal'
 import { StatusChangeModal } from './modals/StatusChangeModal'
@@ -32,15 +34,10 @@ import { DisputeInfoTab } from './tabs/DisputeInfoTab'
 import { MissionInfoTab } from './tabs/MissionInfoTab'
 import { OfferListTab } from './tabs/OfferListTab'
 import { RefundInfoTab } from './tabs/RefundInfoTab'
+import { ReportInfoTab } from './tabs/ReportInfoTab'
 import { REQUEST_TABS, parseRequestTab } from './requestTabs'
 
-const NEXT_STATUS: Partial<Record<DemoRequestStatus, DemoRequestStatus>> = {
-  미입금: '대기중',
-  대기중: '진행중',
-  진행중: '완료',
-}
-
-const CANCELLABLE: DemoRequestStatus[] = ['미입금', '대기중', '진행중']
+const CANCELLABLE: DemoRequestStatus[] = ['미입금', '대기중']
 
 function RequestDetailView({ proposalId }: { proposalId: string }) {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -54,6 +51,7 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
   const mission = findDemoMission(proposalId)
   const dispute = findDemoDispute(proposalId)
   const refund = findDemoRefund(proposalId)
+  const reports = findDemoReportsOf(proposalId)
   const selectedOffer = offers.find((offer) => offer.selected)
 
   const [status, setStatus] = useState<DemoRequestStatus>(
@@ -65,7 +63,7 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
   const [missionStatus, setMissionStatus] = useState<DemoMissionStatus>(
     mission?.status ?? '진행중',
   )
-  const [disputeStatus, setDisputeStatus] = useState<DemoDisputeStatus>(
+  const [disputeStatus, setDisputeStatus] = useState<DemoProcessStatus>(
     dispute?.status ?? '미처리',
   )
   const [statusModalOpen, setStatusModalOpen] = useState(false)
@@ -88,7 +86,7 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
     )
   }
 
-  const nextStatus = NEXT_STATUS[status]
+  const canConfirmPayment = status === '미입금'
   const canCancel = CANCELLABLE.includes(status)
   const refundRequired = refund !== undefined || status !== '미입금'
 
@@ -105,11 +103,8 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
     setCancelWithMissionOpen(false)
   }
 
-  const handleStatusChange = () => {
-    if (!nextStatus) {
-      return
-    }
-    setStatus(nextStatus)
+  const handleConfirmPayment = () => {
+    setStatus('대기중')
     setStatusModalOpen(false)
   }
 
@@ -133,21 +128,17 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
           ← {originLabel}
         </Link>
         <PageHeader
-          title={
-            <span className="or-title-row">
-              요청 #{request.proposalId}
-              <StatusBadge label={status} size="lg" />
-            </span>
-          }
+          title={`요청 #${request.proposalId}`}
           actions={
             <>
-              <Button
-                variant="primary"
-                disabled={nextStatus === undefined}
-                onClick={() => setStatusModalOpen(true)}
-              >
-                상태 변경
-              </Button>
+              {canConfirmPayment ? (
+                <Button
+                  variant="primary"
+                  onClick={() => setStatusModalOpen(true)}
+                >
+                  입금 확인
+                </Button>
+              ) : null}
               {canCancel ? (
                 <Button
                   variant="destructive"
@@ -180,23 +171,6 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
               <span className="or-flag-off">아직 선택된 지원이 없습니다.</span>
             ),
           },
-          {
-            label: '분쟁 여부',
-            value: dispute ? (
-              <span className="or-flag-on">있음</span>
-            ) : (
-              <span className="or-flag-off">없음</span>
-            ),
-          },
-          {
-            label: '환불 여부',
-            value: refund ? (
-              <StatusBadge label={refund.status} />
-            ) : (
-              <span className="or-flag-off">없음</span>
-            ),
-          },
-          { label: '지원 수', value: formatCount(offers.length) },
         ]}
       />
 
@@ -223,6 +197,7 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
               mission={
                 mission ? { ...mission, status: missionStatus } : undefined
               }
+              requestStatus={status}
             />
           ) : null}
           {activeTab === 'dispute' ? (
@@ -233,24 +208,40 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
               offerStatus={offerStatus}
               missionStatus={missionStatus}
               onResolve={handleResolveDispute}
+              onReject={() => setDisputeStatus('반려')}
             />
           ) : null}
-          {activeTab === 'refund' ? <RefundInfoTab refund={refund} /> : null}
+          {activeTab === 'refund' ? (
+            <RefundInfoTab
+              refund={refund}
+              requestStatus={status}
+              onRequestCancel={() => setStatus('취소')}
+            />
+          ) : null}
+          {activeTab === 'report' ? (
+            <ReportInfoTab
+              reports={reports}
+              requestStatus={status}
+              onRequestCancel={() => setStatus('취소')}
+            />
+          ) : null}
         </div>
       </section>
 
-      {nextStatus ? (
+      {canConfirmPayment ? (
         <StatusChangeModal
           open={statusModalOpen}
+          title="입금 확인"
+          confirmLabel="입금 확인"
           proposalId={request.proposalId}
           currentStatus={status}
-          nextStatus={nextStatus}
-          requiresOpenChatUrl={status === '미입금'}
-          guide={
-            status === '미입금' ? '입금 확인 후 상태를 변경해주세요.' : undefined
-          }
+          nextStatus="대기중"
+          requiresOpenChatUrl
+          depositAccount={DEMO_DEPOSIT_ACCOUNT}
+          depositorName={request.depositorName}
+          guide="입금을 확인한 뒤 진행해주세요."
           onClose={() => setStatusModalOpen(false)}
-          onConfirm={handleStatusChange}
+          onConfirm={handleConfirmPayment}
         />
       ) : null}
 

@@ -4,7 +4,6 @@ import { DataTable } from '../../../components/DataTable'
 import { InfoCard } from '../../../components/InfoCard'
 import { Modal } from '../../../components/Modal'
 import { StatusBadge } from '../../../components/StatusBadge'
-import { formatAmount } from '../../../components/formatters'
 import type { DemoOffer } from '../../../demo/demoTypes'
 
 interface OfferListTabProps {
@@ -38,15 +37,6 @@ export function OfferListTab({ offers, selectedOfferId }: OfferListTabProps) {
             render: (offer) => offer.kkobungName,
           },
           {
-            key: 'amount',
-            header: '지원 금액',
-            width: '110px',
-            align: 'right',
-            render: (offer) => (
-              <span className="or-cell-amount">{formatAmount(offer.amount)}</span>
-            ),
-          },
-          {
             key: 'status',
             header: '상태',
             width: '90px',
@@ -66,27 +56,10 @@ export function OfferListTab({ offers, selectedOfferId }: OfferListTabProps) {
             width: '100px',
             render: (offer) =>
               offer.offerId === selectedOfferId ? (
-                <StatusBadge label="선택됨" />
+                <StatusBadge label="선택됨" shape="pill" />
               ) : (
                 <span className="or-flag-off">미선택</span>
               ),
-          },
-          {
-            key: 'detail',
-            header: '상세',
-            width: '80px',
-            align: 'right',
-            render: (offer) => (
-              <Button
-                size="sm"
-                onClick={(event) => {
-                  event.stopPropagation()
-                  setDetailOffer(offer)
-                }}
-              >
-                상세
-              </Button>
-            ),
           },
         ]}
       />
@@ -107,7 +80,6 @@ export function OfferListTab({ offers, selectedOfferId }: OfferListTabProps) {
               items={[
                 { label: '지원 ID', value: detailOffer.offerId },
                 { label: '꼬붕', value: detailOffer.kkobungName },
-                { label: '지원 금액', value: formatAmount(detailOffer.amount) },
                 {
                   label: '지원 상태',
                   value: <StatusBadge label={detailOffer.status} />,

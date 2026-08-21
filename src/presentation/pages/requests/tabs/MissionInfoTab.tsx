@@ -3,17 +3,23 @@ import { Button } from '../../../components/Button'
 import { EmptyState } from '../../../components/EmptyState'
 import { InfoCard } from '../../../components/InfoCard'
 import { StatusBadge } from '../../../components/StatusBadge'
-import { canCopyToClipboard, copyToClipboard } from '../../../components/formatters'
-import type { DemoMission } from '../../../demo/demoTypes'
+import {
+  canCopyToClipboard,
+  copyToClipboard,
+  formatAmount,
+} from '../../../components/formatters'
+import type { DemoMission, DemoProcessStatus } from '../../../demo/demoTypes'
+import { MissionPayoutModal } from '../modals/MissionPayoutModal'
 
 interface MissionInfoTabProps {
   mission: DemoMission | undefined
+  requestStatus: string
 }
 
-export function MissionInfoTab({ mission }: MissionInfoTabProps) {
-  const [copied, setCopied] = useState(false)
-  const copySupported = canCopyToClipboard()
-
+export function MissionInfoTab({
+  mission,
+  requestStatus,
+}: MissionInfoTabProps) {
   if (!mission) {
     return (
       <EmptyState
@@ -23,6 +29,45 @@ export function MissionInfoTab({ mission }: MissionInfoTabProps) {
     )
   }
 
+  return (
+    <MissionInfoView
+      key={mission.missionId}
+      mission={mission}
+      requestStatus={requestStatus}
+    />
+  )
+}
+
+function MissionInfoView({
+  mission,
+  requestStatus,
+}: {
+  mission: DemoMission
+  requestStatus: string
+}) {
+  const [copied, setCopied] = useState(false)
+  const copySupported = canCopyToClipboard()
+  const [settlementStatus, setSettlementStatus] = useState<DemoProcessStatus>(
+    mission.settlementStatus,
+  )
+  const [settledAt, setSettledAt] = useState(mission.settledAt)
+  const [payoutOpen, setPayoutOpen] = useState(false)
+
+  const payoutRequired =
+    mission.status === '완료' && settlementStatus === '미처리'
+
+  const handlePayout = () => {
+    setSettlementStatus('처리 완료')
+    setSettledAt(new Date().toISOString().slice(0, 16).replace('T', ' '))
+    setPayoutOpen(false)
+  }
+
+  const handleReject = () => {
+    setSettlementStatus('반려')
+    setSettledAt(new Date().toISOString().slice(0, 16).replace('T', ' '))
+    setPayoutOpen(false)
+  }
+
   const handleCopy = () => {
     copyToClipboard(mission.openChatUrl).then(setCopied, () => setCopied(false))
   }
@@ -30,14 +75,49 @@ export function MissionInfoTab({ mission }: MissionInfoTabProps) {
   return (
     <div className="or-section-stack">
       <InfoCard
+        title="미션 정보"
+        actions={
+          payoutRequired ? (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setPayoutOpen(true)}
+            >
+              수행비 입금
+            </Button>
+          ) : undefined
+        }
         items={[
           { label: '미션 ID', value: mission.missionId },
+          { label: '상태', value: <StatusBadge label={mission.status} shape="pill" /> },
           { label: '행님', value: mission.hyungnimName },
           { label: '꼬붕', value: mission.kkobungName },
-          { label: '연결된 요청', value: `요청 #${mission.proposalId}` },
+          {
+            label: '연결된 요청',
+            value: `요청 #${mission.proposalId}`,
+            newRow: true,
+          },
           { label: '선택된 지원', value: `지원 #${mission.offerId}` },
-          { label: '상태', value: <StatusBadge label={mission.status} /> },
           { label: '생성일', value: mission.createdAt },
+          ...(mission.status === '완료'
+            ? [
+                {
+                  label: '수행비',
+                  value: formatAmount(mission.payoutAmount),
+                  newRow: true,
+                },
+                {
+                  label: '수행비 입금',
+                  value: <StatusBadge label={settlementStatus} shape="pill" />,
+                },
+                {
+                  label: '입금일',
+                  value: settledAt ?? (
+                    <span className="or-flag-off">아직 입금되지 않았습니다.</span>
+                  ),
+                },
+              ]
+            : []),
         ]}
       />
 
@@ -72,6 +152,18 @@ export function MissionInfoTab({ mission }: MissionInfoTabProps) {
           )}
         </div>
       </section>
+
+      <MissionPayoutModal
+        open={payoutOpen}
+        missionId={mission.missionId}
+        payoutAmount={mission.payoutAmount}
+        payoutAccount={mission.payoutAccount}
+        payoutAccountHolder={mission.payoutAccountHolder}
+        onClose={() => setPayoutOpen(false)}
+        requestStatus={requestStatus}
+        onConfirm={handlePayout}
+        onReject={handleReject}
+      />
     </div>
   )
 }

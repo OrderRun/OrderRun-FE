@@ -9,6 +9,8 @@ interface ConfirmModalProps {
   confirmLabel: string
   confirmVariant?: 'primary' | 'destructive'
   closeLabel?: string
+  rejectLabel?: string
+  onReject?: () => void
   disabled?: boolean
   onClose: () => void
   onConfirm: () => void
@@ -22,6 +24,8 @@ export function ConfirmModal({
   confirmLabel,
   confirmVariant = 'primary',
   closeLabel = '닫기',
+  rejectLabel,
+  onReject,
   disabled = false,
   onClose,
   onConfirm,
@@ -37,6 +41,11 @@ export function ConfirmModal({
           <Button variant="secondary" onClick={onClose}>
             {closeLabel}
           </Button>
+          {rejectLabel !== undefined && onReject !== undefined ? (
+            <Button variant="destructive" onClick={onReject}>
+              {rejectLabel}
+            </Button>
+          ) : null}
           <Button variant={confirmVariant} disabled={disabled} onClick={onConfirm}>
             {confirmLabel}
           </Button>

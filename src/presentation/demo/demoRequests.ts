@@ -2,10 +2,14 @@
 
 import type { DemoRequest } from './demoTypes'
 
+/** 입금을 받는 플랫폼 계좌. 실제 계좌 정보는 연동 시 서버에서 내려온다. */
+export const DEMO_DEPOSIT_ACCOUNT = '카카오뱅크 3333-01-2948175 (주)꼬붕단'
+
 export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1035',
     hyungnimName: '서지훈',
+    depositorName: '서지훈',
     amount: 32000,
     status: '미입금',
     createdAt: '2026-08-21 10:24',
@@ -15,6 +19,7 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1034',
     hyungnimName: '김도현',
+    depositorName: '김도현',
     amount: 45000,
     status: '미입금',
     createdAt: '2026-08-21 09:12',
@@ -24,6 +29,7 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1033',
     hyungnimName: '박서준',
+    depositorName: '박서준',
     amount: 120000,
     status: '대기중',
     createdAt: '2026-08-21 08:05',
@@ -33,15 +39,17 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1032',
     hyungnimName: '이하늘',
+    depositorName: '이하늘',
     amount: 38000,
     status: '대기중',
     createdAt: '2026-08-20 17:40',
-    selectedOfferId: 'O-414',
+    selectedOfferId: null,
     missionId: null,
   },
   {
     proposalId: 'P-1031',
     hyungnimName: '최민재',
+    depositorName: '최민재',
     amount: 80000,
     status: '진행중',
     createdAt: '2026-08-20 15:22',
@@ -51,6 +59,7 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1030',
     hyungnimName: '정유진',
+    depositorName: '정유진',
     amount: 55000,
     status: '진행중',
     createdAt: '2026-08-20 11:10',
@@ -60,6 +69,7 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1029',
     hyungnimName: '강태오',
+    depositorName: '강태오',
     amount: 95000,
     status: '분쟁중',
     createdAt: '2026-08-19 19:02',
@@ -69,6 +79,7 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1028',
     hyungnimName: '조은비',
+    depositorName: '조은비',
     amount: 47000,
     status: '분쟁중',
     createdAt: '2026-08-19 14:33',
@@ -78,6 +89,7 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1027',
     hyungnimName: '윤성호',
+    depositorName: '윤성호',
     amount: 150000,
     status: '완료',
     createdAt: '2026-08-18 20:15',
@@ -87,6 +99,7 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1026',
     hyungnimName: '장미르',
+    depositorName: '장미르',
     amount: 25000,
     status: '취소',
     createdAt: '2026-08-18 13:47',
@@ -96,6 +109,7 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1023',
     hyungnimName: '임채원',
+    depositorName: '임채원',
     amount: 60000,
     status: '진행중',
     createdAt: '2026-08-17 10:05',
@@ -105,8 +119,9 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1020',
     hyungnimName: '한지우',
+    depositorName: '한지우',
     amount: 72000,
-    status: '분쟁중',
+    status: '취소',
     createdAt: '2026-08-16 16:30',
     selectedOfferId: 'O-392',
     missionId: 'M-182',
@@ -114,6 +129,7 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1012',
     hyungnimName: '오세영',
+    depositorName: '오세영',
     amount: 88000,
     status: '취소',
     createdAt: '2026-08-14 09:50',
@@ -123,6 +139,7 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1008',
     hyungnimName: '백승우',
+    depositorName: '백승우',
     amount: 41000,
     status: '완료',
     createdAt: '2026-08-12 12:00',
@@ -132,6 +149,7 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1005',
     hyungnimName: '남기훈',
+    depositorName: '남기훈',
     amount: 63000,
     status: '취소',
     createdAt: '2026-08-10 08:30',
@@ -141,6 +159,7 @@ export const DEMO_REQUESTS: DemoRequest[] = [
   {
     proposalId: 'P-1002',
     hyungnimName: '문가온',
+    depositorName: '문가온',
     amount: 52000,
     status: '취소',
     createdAt: '2026-08-08 19:15',

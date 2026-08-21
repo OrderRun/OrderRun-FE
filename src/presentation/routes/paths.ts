@@ -9,12 +9,7 @@ export const PATHS = {
   disputes: '/disputes',
   refunds: '/refunds',
   reports: '/reports',
-  reportDetail: '/reports/:reportId',
 } as const
-
-export function reportDetailPath(reportId: string): string {
-  return `${PATHS.reports}/${encodeURIComponent(reportId)}`
-}
 
 export function requestDetailPath(
   proposalId: string,

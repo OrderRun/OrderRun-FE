@@ -39,7 +39,7 @@ export const DEMO_DISPUTES: DemoDispute[] = [
     targetName: '백지훈',
     targetRole: '꼬붕',
     reason: '미션 결과물이 요청 내용과 다릅니다.',
-    status: '미처리',
+    status: '처리 완료',
     requestedAt: '2026-08-17 09:32',
   },
   {

@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { DataTable } from '../../components/DataTable'
 import { FilterSelect } from '../../components/FilterSelect'
 import { PageHeader } from '../../components/PageHeader'
@@ -119,16 +119,9 @@ export function OfferListPage() {
             {
               key: 'proposalId',
               header: '요청 ID',
-              width: '190px',
+              width: '120px',
               render: (offer) => (
-                <Link
-                  className="or-inline-link"
-                  to={requestDetailPath(offer.proposalId)}
-                  state={{ from: location.pathname + location.search }}
-                  onClick={(event) => event.stopPropagation()}
-                >
-                  요청 #{offer.proposalId} 바로가기
-                </Link>
+                <span className="or-cell-id">요청 #{offer.proposalId}</span>
               ),
             },
             {
@@ -141,7 +134,6 @@ export function OfferListPage() {
               key: 'amount',
               header: '지원 금액',
               width: '110px',
-              align: 'right',
               render: (offer) => (
                 <span className="or-cell-amount">{formatAmount(offer.amount)}</span>
               ),
@@ -158,7 +150,7 @@ export function OfferListPage() {
               width: '100px',
               render: (offer) =>
                 offer.selected ? (
-                  <StatusBadge label="선택됨" />
+                  <StatusBadge label="선택됨" shape="pill" />
                 ) : (
                   <span className="or-flag-off">미선택</span>
                 ),

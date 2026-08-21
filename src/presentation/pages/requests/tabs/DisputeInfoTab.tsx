@@ -5,7 +5,7 @@ import { InfoCard } from '../../../components/InfoCard'
 import { StatusBadge } from '../../../components/StatusBadge'
 import type {
   DemoDispute,
-  DemoDisputeStatus,
+  DemoProcessStatus,
   DemoMissionStatus,
   DemoOfferStatus,
   DemoRequestStatus,
@@ -15,11 +15,12 @@ import type { DisputeOutcome } from '../../disputes/modals/DisputeResolveModal'
 
 interface DisputeInfoTabProps {
   dispute: DemoDispute | undefined
-  disputeStatus: DemoDisputeStatus
+  disputeStatus: DemoProcessStatus
   requestStatus: DemoRequestStatus
   offerStatus: DemoOfferStatus
   missionStatus: DemoMissionStatus
   onResolve: (outcome: DisputeOutcome) => void
+  onReject: (reason: string) => void
 }
 
 export function DisputeInfoTab({
@@ -29,6 +30,7 @@ export function DisputeInfoTab({
   offerStatus,
   missionStatus,
   onResolve,
+  onReject,
 }: DisputeInfoTabProps) {
   const [resolveOpen, setResolveOpen] = useState(false)
 
@@ -41,52 +43,54 @@ export function DisputeInfoTab({
     )
   }
 
-  const alreadyResolved = disputeStatus === '처리 완료'
+  const alreadyResolved = disputeStatus !== '미처리'
 
   return (
     <div className="or-section-stack">
       <InfoCard
         title="분쟁 정보"
         actions={
-          <Button
-            variant="primary"
-            size="sm"
-            disabled={alreadyResolved}
-            onClick={() => setResolveOpen(true)}
-          >
-            분쟁 처리
-          </Button>
+          alreadyResolved ? undefined : (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setResolveOpen(true)}
+            >
+              분쟁 처리
+            </Button>
+          )
         }
         items={[
+          { label: '분쟁 ID', value: dispute.disputeId },
+          {
+            label: '처리 여부',
+            value: <StatusBadge label={disputeStatus} shape="pill" />,
+          },
+          { label: '분쟁 사유', value: dispute.reason },
           {
             label: '분쟁 신청자',
+            newRow: true,
             value: (
               <>
                 {dispute.requesterName}
                 <span className="or-role-tag">
-                  <StatusBadge label={dispute.requesterRole} />
+                  <StatusBadge label={dispute.requesterRole} shape="pill" />
                 </span>
               </>
             ),
           },
-          { label: '신청일', value: dispute.requestedAt },
           {
             label: '신청 대상',
             value: (
               <>
                 {dispute.targetName}
                 <span className="or-role-tag">
-                  <StatusBadge label={dispute.targetRole} />
+                  <StatusBadge label={dispute.targetRole} shape="pill" />
                 </span>
               </>
             ),
           },
-          {
-            label: '현재 처리 상태',
-            value: <StatusBadge label={disputeStatus} />,
-          },
-          { label: '분쟁 ID', value: dispute.disputeId },
-          { label: '분쟁 사유', value: dispute.reason },
+          { label: '신청일', value: dispute.requestedAt },
         ]}
       />
 
@@ -118,7 +122,7 @@ export function DisputeInfoTab({
                 <br />
                 <span className="or-related-id">미션 #{dispute.missionId}</span>
               </span>
-              <StatusBadge label={missionStatus} />
+              <StatusBadge label={missionStatus} shape="pill" />
             </div>
           </div>
         </div>
@@ -135,6 +139,10 @@ export function DisputeInfoTab({
         onClose={() => setResolveOpen(false)}
         onConfirm={(outcome) => {
           onResolve(outcome)
+          setResolveOpen(false)
+        }}
+        onReject={(reason) => {
+          onReject(reason)
           setResolveOpen(false)
         }}
       />

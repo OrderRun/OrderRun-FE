@@ -1,45 +1,49 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { Button } from '../../components/Button'
-import { ConfirmModal } from '../../components/ConfirmModal'
-import { DataTable } from '../../components/DataTable'
 import { PageHeader } from '../../components/PageHeader'
-import { StatusBadge } from '../../components/StatusBadge'
 import {
   createDemoSummaryCards,
-  DEMO_CARD_TASK_STATUS,
-  DEMO_TASK_ITEMS,
   parseSummaryCardKey,
 } from '../../demo/demoDashboard'
+import { DEMO_DISPUTES } from '../../demo/demoDisputes'
+import { DEMO_MISSIONS } from '../../demo/demoMissions'
 import { DEMO_PROPOSAL_REPORTS } from '../../demo/demoProposalReports'
-import {
-  findDemoDispute,
-  findDemoMission,
-  findDemoOffersOf,
-  findDemoRequest,
-} from '../../demo/demoSelectors'
-import type { DemoProposalReport, DemoTaskItem } from '../../demo/demoTypes'
+import { DEMO_REFUNDS } from '../../demo/demoRefunds'
+import { DEMO_REQUEST_SUMMARIES } from '../../demo/demoSelectors'
+import type { DemoSummaryCardKey } from '../../demo/demoTypes'
 import { useQueryState } from '../../hooks/useQueryState'
-import { reportDetailPath, requestDetailPath } from '../../routes/paths'
-import { DisputeResolveModal } from '../disputes/modals/DisputeResolveModal'
-import { StatusChangeModal } from '../requests/modals/StatusChangeModal'
+import { requestDetailPath } from '../../routes/paths'
+import { DisputeTable } from '../disputes/DisputeTable'
+import { MissionTable } from '../missions/MissionTable'
+import { RefundTable } from '../refunds/RefundTable'
+import { ReportTable } from '../reports/ReportTable'
+import { RequestTable } from '../requests/RequestTable'
 
 const QUERY_DEFAULTS = { card: '' }
 
-function taskPath(item: DemoTaskItem): string {
-  return item.tab
-    ? requestDetailPath(item.proposalId, item.tab)
-    : requestDetailPath(item.proposalId)
-}
+/** 대시보드는 처리가 필요한 항목만 모아 보여준다. */
+const UNPAID_REQUESTS = DEMO_REQUEST_SUMMARIES.filter(
+  (summary) => summary.request.status === '미입금',
+)
+const PENDING_DISPUTES = DEMO_DISPUTES.filter(
+  (dispute) => dispute.status === '미처리',
+)
+const PENDING_REFUNDS = DEMO_REFUNDS.filter(
+  (refund) => refund.status === '미처리',
+)
+const PENDING_SETTLEMENTS = DEMO_MISSIONS.filter(
+  (mission) => mission.status === '완료' && mission.settlementStatus === '미처리',
+)
+const PENDING_REPORTS = DEMO_PROPOSAL_REPORTS.filter(
+  (report) => report.reportStatus === '미처리',
+)
 
-function actionLabel(item: DemoTaskItem): string {
-  if (item.type === '요청') {
-    return '입금 확인'
-  }
-  if (item.type === '분쟁') {
-    return '분쟁 해결'
-  }
-  return '환불 처리'
+const CARD_COUNTS: Record<DemoSummaryCardKey, number> = {
+  unpaid: UNPAID_REQUESTS.length,
+  dispute: PENDING_DISPUTES.length,
+  refund: PENDING_REFUNDS.length,
+  settlement: PENDING_SETTLEMENTS.length,
+  report: PENDING_REPORTS.length,
 }
 
 export function DashboardPage() {
@@ -47,101 +51,14 @@ export function DashboardPage() {
   const location = useLocation()
   const { get, set } = useQueryState(QUERY_DEFAULTS)
   const selectedCard = parseSummaryCardKey(get('card'))
-  const [taskItems, setTaskItems] = useState(DEMO_TASK_ITEMS)
-  const [proposalReports, setProposalReports] = useState(DEMO_PROPOSAL_REPORTS)
-  const [activeTask, setActiveTask] = useState<DemoTaskItem | null>(null)
-  const [activeReport, setActiveReport] = useState<DemoProposalReport | null>(
-    null,
-  )
 
-  const summaryCards = useMemo(
-    () => createDemoSummaryCards(taskItems, proposalReports),
-    [proposalReports, taskItems],
-  )
-  const rows = useMemo(() => {
-    if (selectedCard === null) {
-      return taskItems
-    }
-    if (selectedCard === 'report') {
-      return []
-    }
-    const status = DEMO_CARD_TASK_STATUS[selectedCard]
-    return taskItems.filter((item) => item.status === status)
-  }, [selectedCard, taskItems])
-  const showTaskItems = selectedCard !== 'report'
-  const showProposalReports =
-    selectedCard === null || selectedCard === 'report'
-  const selectedCardLabel = summaryCards.find(
-    (card) => card.key === selectedCard,
-  )?.label
+  const summaryCards = useMemo(() => createDemoSummaryCards(CARD_COUNTS), [])
+  const shows = (card: DemoSummaryCardKey) =>
+    selectedCard === null || selectedCard === card
 
-  const activeDispute =
-    activeTask?.type === '분쟁'
-      ? findDemoDispute(activeTask.proposalId)
-      : undefined
-  const activeRequest = activeTask
-    ? findDemoRequest(activeTask.proposalId)
-    : undefined
-  const activeMission = activeTask
-    ? findDemoMission(activeTask.proposalId)
-    : undefined
-  const activeOffer = activeDispute
-    ? findDemoOffersOf(activeDispute.proposalId).find(
-        (offer) => offer.offerId === activeDispute.offerId,
-      )
-    : undefined
-  const disputeTargets =
-    activeDispute && activeRequest && activeMission && activeOffer
-      ? [
-          {
-            label: '요청',
-            id: activeRequest.proposalId,
-            currentStatus: activeRequest.status,
-          },
-          {
-            label: '지원',
-            id: activeOffer.offerId,
-            currentStatus: activeOffer.status,
-          },
-          {
-            label: '미션',
-            id: activeMission.missionId,
-            currentStatus: activeMission.status,
-          },
-        ]
-      : []
-
-  const openTask = (item: DemoTaskItem) => {
-    navigate(taskPath(item), {
-      state: { from: location.pathname + location.search },
-    })
-  }
-
-  const openReport = (report: DemoProposalReport) => {
-    navigate(reportDetailPath(report.reportId), {
-      state: { from: location.pathname + location.search },
-    })
-  }
-
-  const completeActiveTask = () => {
-    if (!activeTask) {
-      return
-    }
-    setTaskItems((items) =>
-      items.filter((item) => item.taskId !== activeTask.taskId),
-    )
-    setActiveTask(null)
-  }
-
-  const cancelActiveProposal = () => {
-    if (!activeReport) {
-      return
-    }
-    setProposalReports((reports) =>
-      reports.filter((report) => report.reportId !== activeReport.reportId),
-    )
-    setActiveReport(null)
-  }
+  const originState = { from: location.pathname + location.search }
+  const filterHint =
+    selectedCard === null ? undefined : '카드를 다시 눌러 전체 목록을 볼 수 있습니다.'
 
   return (
     <>
@@ -161,213 +78,112 @@ export function DashboardPage() {
               set('card', selectedCard === card.key ? '' : card.key)
             }
           >
-            <span className="or-summary-label">
-              <StatusBadge label={card.label} />
+            <span className="or-summary-label">{card.label}</span>
+            <span className="or-summary-value">
+              {card.value}
+              <span className="or-summary-unit">건</span>
             </span>
-            <span className="or-summary-value">{card.value}</span>
             <span className="or-summary-hint">{card.hint}</span>
           </button>
         ))}
       </div>
 
-      {showTaskItems ? (
+      {shows('unpaid') ? (
         <section className="or-card">
           <div className="or-card-head">
-            <h2 className="or-card-title">
-              {selectedCardLabel
-                ? `${selectedCardLabel} 처리 항목`
-                : '처리 필요한 항목'}
-            </h2>
-            <span className="or-result-count">{rows.length}건</span>
+            <h2 className="or-card-title">미입금 요청</h2>
+            <span className="or-result-count">{UNPAID_REQUESTS.length}건</span>
           </div>
-          <DataTable
-            rows={rows}
-            rowKey={(item) => item.taskId}
-            emptyMessage={
-              selectedCard === null
-                ? '처리할 항목이 없습니다.'
-                : `처리할 ${selectedCardLabel ?? ''} 항목이 없습니다.`
+          <RequestTable
+            rows={UNPAID_REQUESTS}
+            emptyMessage="입금 확인이 필요한 요청이 없습니다."
+            emptyHint={filterHint}
+            onRowClick={(summary) =>
+              navigate(requestDetailPath(summary.request.proposalId), {
+                state: originState,
+              })
             }
-            emptyHint={
-              selectedCard === null
-                ? undefined
-                : '카드를 다시 눌러 전체 목록을 볼 수 있습니다.'
-            }
-            onRowClick={openTask}
-            columns={[
-            {
-              key: 'type',
-              header: '유형',
-              width: '80px',
-              render: (item) => item.type,
-            },
-            {
-              key: 'id',
-              header: 'Proposal ID',
-              width: '120px',
-              render: (item) => (
-                <span className="or-cell-id">{item.proposalId}</span>
-              ),
-            },
-            {
-              key: 'status',
-              header: '현재 상태',
-              width: '120px',
-              render: (item) => <StatusBadge label={item.status} />,
-            },
-            {
-              key: 'content',
-              header: '관리자 작업',
-              render: (item) => item.content,
-            },
-            {
-              key: 'occurredAt',
-              header: '발생 시각',
-              width: '150px',
-              render: (item) => (
-                <span className="or-cell-muted">{item.occurredAt}</span>
-              ),
-            },
-            {
-              key: 'action',
-              header: '처리',
-              width: '110px',
-              render: (item) => (
-                <Button
-                  size="sm"
-                  variant="primary"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    setActiveTask(item)
-                  }}
-                >
-                  {actionLabel(item)}
-                </Button>
-              ),
-            },
-            ]}
           />
         </section>
       ) : null}
 
-      {showProposalReports ? (
+      {shows('dispute') ? (
         <section className="or-card">
           <div className="or-card-head">
-            <h2 className="or-card-title">신고된 Proposal</h2>
-            <span className="or-result-count">{proposalReports.length}건</span>
+            <h2 className="or-card-title">분쟁</h2>
+            <span className="or-result-count">{PENDING_DISPUTES.length}건</span>
           </div>
-          <DataTable
-            rows={proposalReports}
-            rowKey={(report) => report.reportId}
-            emptyMessage="처리할 Proposal 신고가 없습니다."
-            emptyHint={
-              selectedCard === 'report'
-                ? '신고 카드를 다시 눌러 전체 목록을 볼 수 있습니다.'
-                : undefined
+          <DisputeTable
+            rows={PENDING_DISPUTES}
+            emptyMessage="처리할 분쟁이 없습니다."
+            emptyHint={filterHint}
+            onRowClick={(dispute) =>
+              navigate(requestDetailPath(dispute.proposalId, 'dispute'), {
+                state: originState,
+              })
             }
-            onRowClick={openReport}
-            columns={[
-            {
-              key: 'reportId',
-              header: '신고 ID',
-              width: '95px',
-              render: (report) => (
-                <span className="or-cell-id">{report.reportId}</span>
-              ),
-            },
-            {
-              key: 'proposalId',
-              header: 'Proposal ID',
-              width: '115px',
-              render: (report) => (
-                <span className="or-cell-id">{report.proposalId}</span>
-              ),
-            },
-            {
-              key: 'reason',
-              header: '신고 내용',
-              render: (report) => (
-                <span className="or-report-content">
-                  <span>{report.reasonQuestionText}</span>
-                  <span className="or-report-detail">
-                    {report.detailReason ?? '추가 상세 내용 없음'}
-                  </span>
-                </span>
-              ),
-            },
-            {
-              key: 'reportedAt',
-              header: '신고일',
-              width: '145px',
-              render: (report) => (
-                <span className="or-cell-muted">{report.reportedAt}</span>
-              ),
-            },
-            {
-              key: 'action',
-              header: '처리',
-              width: '110px',
-              render: (report) => (
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={(event) => {
-                    event.stopPropagation()
-                    setActiveReport(report)
-                  }}
-                >
-                  Proposal 취소
-                </Button>
-              ),
-            },
-            ]}
           />
         </section>
       ) : null}
 
-      <StatusChangeModal
-        open={activeTask?.type === '요청'}
-        proposalId={activeTask?.proposalId ?? ''}
-        currentStatus="미입금"
-        nextStatus="대기중"
-        guide="입금을 확인한 뒤 상태를 변경해주세요."
-        onClose={() => setActiveTask(null)}
-        onConfirm={completeActiveTask}
-      />
+      {shows('refund') ? (
+        <section className="or-card">
+          <div className="or-card-head">
+            <h2 className="or-card-title">환불</h2>
+            <span className="or-result-count">{PENDING_REFUNDS.length}건</span>
+          </div>
+          <RefundTable
+            rows={PENDING_REFUNDS}
+            emptyMessage="처리할 환불이 없습니다."
+            emptyHint={filterHint}
+            onRowClick={(refund) =>
+              navigate(requestDetailPath(refund.proposalId, 'refund'), {
+                state: originState,
+              })
+            }
+          />
+        </section>
+      ) : null}
 
-      <DisputeResolveModal
-        open={activeTask?.type === '분쟁'}
-        disputeId={activeDispute?.disputeId ?? ''}
-        targets={disputeTargets}
-        onClose={() => setActiveTask(null)}
-        onConfirm={completeActiveTask}
-      />
+      {shows('settlement') ? (
+        <section className="or-card">
+          <div className="or-card-head">
+            <h2 className="or-card-title">미션 완료</h2>
+            <span className="or-result-count">
+              {PENDING_SETTLEMENTS.length}건
+            </span>
+          </div>
+          <MissionTable
+            rows={PENDING_SETTLEMENTS}
+            emptyMessage="수행비 입금이 필요한 미션이 없습니다."
+            emptyHint={filterHint}
+            onRowClick={(mission) =>
+              navigate(requestDetailPath(mission.proposalId, 'mission'), {
+                state: originState,
+              })
+            }
+          />
+        </section>
+      ) : null}
 
-      <ConfirmModal
-        open={activeTask?.type === '환불'}
-        title="환불 처리"
-        description={`Proposal #${activeTask?.proposalId ?? ''}의 환불을 완료 처리할까요?`}
-        confirmLabel="환불 완료"
-        onClose={() => setActiveTask(null)}
-        onConfirm={completeActiveTask}
-      >
-        <span className="or-transition">
-          <StatusBadge label="환불 필요" />
-          <span className="or-transition-arrow">→</span>
-          <StatusBadge label="환불 완료" />
-        </span>
-      </ConfirmModal>
-
-      <ConfirmModal
-        open={activeReport !== null}
-        title="Proposal 취소"
-        description={`신고된 Proposal #${activeReport?.proposalId ?? ''}을 취소할까요? 이 화면의 임시 데이터에만 반영됩니다.`}
-        confirmLabel="Proposal 취소"
-        confirmVariant="destructive"
-        closeLabel="닫기"
-        onClose={() => setActiveReport(null)}
-        onConfirm={cancelActiveProposal}
-      />
+      {shows('report') ? (
+        <section className="or-card">
+          <div className="or-card-head">
+            <h2 className="or-card-title">신고</h2>
+            <span className="or-result-count">{PENDING_REPORTS.length}건</span>
+          </div>
+          <ReportTable
+            rows={PENDING_REPORTS}
+            emptyMessage="처리할 신고가 없습니다."
+            emptyHint={filterHint}
+            onRowClick={(report) =>
+              navigate(requestDetailPath(report.proposalId, 'report'), {
+                state: originState,
+              })
+            }
+          />
+        </section>
+      ) : null}
     </>
   )
 }
