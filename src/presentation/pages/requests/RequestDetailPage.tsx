@@ -39,6 +39,10 @@ import { REQUEST_TABS, parseRequestTab } from './requestTabs'
 
 const CANCELLABLE: DemoRequestStatus[] = ['미입금', '대기중']
 
+function nowStamp(): string {
+  return new Date().toISOString().slice(0, 16).replace('T', ' ')
+}
+
 function RequestDetailView({ proposalId }: { proposalId: string }) {
   const [searchParams, setSearchParams] = useSearchParams()
   const location = useLocation()
@@ -66,9 +70,26 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
   const [disputeStatus, setDisputeStatus] = useState<DemoProcessStatus>(
     dispute?.status ?? '미처리',
   )
+  const [disputeNote, setDisputeNote] = useState('')
+  const [refundStatus, setRefundStatus] = useState<DemoProcessStatus>(
+    refund?.status ?? '미처리',
+  )
+  const [refundProcessedAt, setRefundProcessedAt] = useState<string | null>(
+    refund?.processedAt ?? null,
+  )
+  const [refundNote, setRefundNote] = useState(refund?.adminNote ?? '')
+  const [settlementStatus, setSettlementStatus] = useState<DemoProcessStatus>(
+    mission?.settlementStatus ?? '미처리',
+  )
+  const [settledAt, setSettledAt] = useState<string | null>(
+    mission?.settledAt ?? null,
+  )
+  const [payoutNote, setPayoutNote] = useState('')
+  const [reportStatusById, setReportStatusById] = useState<
+    Record<string, DemoProcessStatus>
+  >({})
   const [statusModalOpen, setStatusModalOpen] = useState(false)
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
-  const [cancelWithMissionOpen, setCancelWithMissionOpen] = useState(false)
 
   if (!request) {
     return (
@@ -89,18 +110,26 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
   const canConfirmPayment = status === '미입금'
   const canCancel = CANCELLABLE.includes(status)
   const refundRequired = refund !== undefined || status !== '미입금'
+  const listedOffers = offers.map((offer) =>
+    offer.offerId === selectedOffer?.offerId
+      ? { ...offer, status: offerStatus }
+      : offer,
+  )
 
-  const handleCancelRequest = () => {
+  /** 요청 취소는 선택된 지원과 연결된 미션까지 함께 취소한다. */
+  const applyCancelCascade = () => {
     setStatus('취소')
-    setOfferStatus('취소')
-    setCancelModalOpen(false)
+    if (selectedOffer) {
+      setOfferStatus('취소')
+    }
+    if (mission) {
+      setMissionStatus('취소')
+    }
   }
 
-  const handleCancelWithMission = () => {
-    setStatus('취소')
-    setOfferStatus('취소')
-    setMissionStatus('취소')
-    setCancelWithMissionOpen(false)
+  const handleCancelRequest = () => {
+    applyCancelCascade()
+    setCancelModalOpen(false)
   }
 
   const handleConfirmPayment = () => {
@@ -108,17 +137,59 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
     setStatusModalOpen(false)
   }
 
-  const handleResolveDispute = (outcome: DisputeOutcome) => {
+  const handleResolveDispute = (outcome: DisputeOutcome, note: string) => {
     if (outcome === '미션 완료') {
       setStatus('완료')
       setOfferStatus('완료')
       setMissionStatus('완료')
     } else {
-      setStatus('취소')
-      setOfferStatus('취소')
-      setMissionStatus('취소')
+      applyCancelCascade()
     }
     setDisputeStatus('처리 완료')
+    setDisputeNote(note)
+  }
+
+  const handleRejectDispute = (note: string) => {
+    setDisputeStatus('반려')
+    setDisputeNote(note)
+  }
+
+  const handleRefundComplete = (note: string) => {
+    setRefundStatus('처리 완료')
+    setRefundProcessedAt(nowStamp())
+    if (note !== '') {
+      setRefundNote(note)
+    }
+    applyCancelCascade()
+  }
+
+  const handleRefundReject = (note: string) => {
+    setRefundStatus('반려')
+    setRefundProcessedAt(nowStamp())
+    if (note !== '') {
+      setRefundNote(note)
+    }
+  }
+
+  const handlePayout = (note: string) => {
+    setSettlementStatus('처리 완료')
+    setSettledAt(nowStamp())
+    setPayoutNote(note)
+  }
+
+  const handlePayoutReject = (note: string) => {
+    setSettlementStatus('반려')
+    setSettledAt(nowStamp())
+    setPayoutNote(note)
+  }
+
+  const handleReportComplete = (reportId: string) => {
+    setReportStatusById((current) => ({ ...current, [reportId]: '처리 완료' }))
+    applyCancelCascade()
+  }
+
+  const handleReportReject = (reportId: string) => {
+    setReportStatusById((current) => ({ ...current, [reportId]: '반려' }))
   }
 
   return (
@@ -142,11 +213,7 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
               {canCancel ? (
                 <Button
                   variant="destructive"
-                  onClick={() =>
-                    mission
-                      ? setCancelWithMissionOpen(true)
-                      : setCancelModalOpen(true)
-                  }
+                  onClick={() => setCancelModalOpen(true)}
                 >
                   요청 취소
                 </Button>
@@ -188,7 +255,7 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
         <div className="or-card-body">
           {activeTab === 'offers' ? (
             <OfferListTab
-              offers={offers}
+              offers={listedOffers}
               selectedOfferId={selectedOffer?.offerId ?? null}
             />
           ) : null}
@@ -198,31 +265,43 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
                 mission ? { ...mission, status: missionStatus } : undefined
               }
               requestStatus={status}
+              settlementStatus={settlementStatus}
+              settledAt={settledAt}
+              adminNote={payoutNote}
+              onPayout={handlePayout}
+              onPayoutReject={handlePayoutReject}
             />
           ) : null}
           {activeTab === 'dispute' ? (
             <DisputeInfoTab
               dispute={dispute}
               disputeStatus={disputeStatus}
+              adminNote={disputeNote}
               requestStatus={status}
               offerStatus={offerStatus}
               missionStatus={missionStatus}
               onResolve={handleResolveDispute}
-              onReject={() => setDisputeStatus('반려')}
+              onReject={handleRejectDispute}
             />
           ) : null}
           {activeTab === 'refund' ? (
             <RefundInfoTab
               refund={refund}
               requestStatus={status}
-              onRequestCancel={() => setStatus('취소')}
+              refundStatus={refundStatus}
+              processedAt={refundProcessedAt}
+              adminNote={refundNote}
+              onProcess={handleRefundComplete}
+              onReject={handleRefundReject}
             />
           ) : null}
           {activeTab === 'report' ? (
             <ReportInfoTab
               reports={reports}
               requestStatus={status}
-              onRequestCancel={() => setStatus('취소')}
+              statusById={reportStatusById}
+              onComplete={handleReportComplete}
+              onReject={handleReportReject}
             />
           ) : null}
         </div>
@@ -244,21 +323,6 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
           onConfirm={handleConfirmPayment}
         />
       ) : null}
-
-      <StatusChangeModal
-        open={cancelWithMissionOpen}
-        proposalId={request.proposalId}
-        currentStatus={status}
-        nextStatus="취소"
-        destructive
-        notices={[
-          `연결된 미션 #${mission?.missionId ?? ''}도 함께 취소됩니다.`,
-          '선택된 지원도 함께 취소됩니다.',
-          '환불 처리가 필요한 요청입니다.',
-        ]}
-        onClose={() => setCancelWithMissionOpen(false)}
-        onConfirm={handleCancelWithMission}
-      />
 
       <CancelRequestConfirmModal
         open={cancelModalOpen}

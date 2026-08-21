@@ -8,23 +8,25 @@ import { StatusBadge } from '../../../components/StatusBadge'
 import type {
   DemoProcessStatus,
   DemoProposalReport,
+  DemoRequestStatus,
 } from '../../../demo/demoTypes'
 
 interface ReportInfoTabProps {
   reports: DemoProposalReport[]
-  requestStatus: string
+  requestStatus: DemoRequestStatus
+  statusById: Record<string, DemoProcessStatus>
   /** 신고가 처리 완료되면 요청도 취소로 바뀐다. */
-  onRequestCancel: () => void
+  onComplete: (reportId: string) => void
+  onReject: (reportId: string) => void
 }
 
 export function ReportInfoTab({
   reports,
   requestStatus,
-  onRequestCancel,
+  statusById,
+  onComplete,
+  onReject,
 }: ReportInfoTabProps) {
-  const [statusById, setStatusById] = useState<
-    Record<string, DemoProcessStatus>
-  >({})
   const [detailReport, setDetailReport] = useState<DemoProposalReport | null>(
     null,
   )
@@ -34,15 +36,13 @@ export function ReportInfoTab({
   const statusOf = (report: DemoProposalReport): DemoProcessStatus =>
     statusById[report.reportId] ?? report.reportStatus
 
+  const alreadyCancelled = requestStatus === '취소'
+
   const completeReport = () => {
     if (!processTarget) {
       return
     }
-    setStatusById((current) => ({
-      ...current,
-      [processTarget.reportId]: '처리 완료',
-    }))
-    onRequestCancel()
+    onComplete(processTarget.reportId)
     setProcessTarget(null)
   }
 
@@ -50,10 +50,7 @@ export function ReportInfoTab({
     if (!processTarget) {
       return
     }
-    setStatusById((current) => ({
-      ...current,
-      [processTarget.reportId]: '반려',
-    }))
+    onReject(processTarget.reportId)
     setProcessTarget(null)
   }
 
@@ -97,7 +94,7 @@ export function ReportInfoTab({
             key: 'action',
             header: '처리',
             width: '110px',
-              render: (report) =>
+            render: (report) =>
               statusOf(report) === '미처리' ? (
                 <Button
                   size="sm"
@@ -164,7 +161,11 @@ export function ReportInfoTab({
       <ConfirmModal
         open={processTarget !== null}
         title="신고 처리"
-        description={`신고 #${processTarget?.reportId ?? ''}을 처리 완료하면 요청도 취소로 변경됩니다. 반려하면 요청 상태는 그대로입니다.`}
+        description={
+          alreadyCancelled
+            ? `신고 #${processTarget?.reportId ?? ''}을 처리 완료해도 요청은 이미 취소 상태입니다. 반려하면 요청 상태는 그대로입니다.`
+            : `신고 #${processTarget?.reportId ?? ''}을 처리 완료하면 요청도 취소로 변경됩니다. 반려하면 요청 상태는 그대로입니다.`
+        }
         confirmLabel="처리 완료"
         closeLabel="닫기"
         rejectLabel="반려"
@@ -175,11 +176,15 @@ export function ReportInfoTab({
         <div className="or-panel">
           <div className="or-kv-row">
             <span className="or-kv-label">요청 상태</span>
-            <span className="or-transition">
+            {alreadyCancelled ? (
               <StatusBadge label={requestStatus} />
-              <span className="or-transition-arrow">→</span>
-              <StatusBadge label="취소" />
-            </span>
+            ) : (
+              <span className="or-transition">
+                <StatusBadge label={requestStatus} />
+                <span className="or-transition-arrow">→</span>
+                <StatusBadge label="취소" />
+              </span>
+            )}
           </div>
         </div>
       </ConfirmModal>

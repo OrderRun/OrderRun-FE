@@ -8,18 +8,36 @@ import {
   copyToClipboard,
   formatAmount,
 } from '../../../components/formatters'
-import type { DemoMission, DemoProcessStatus } from '../../../demo/demoTypes'
+import type {
+  DemoMission,
+  DemoProcessStatus,
+  DemoRequestStatus,
+} from '../../../demo/demoTypes'
 import { MissionPayoutModal } from '../modals/MissionPayoutModal'
 
 interface MissionInfoTabProps {
   mission: DemoMission | undefined
-  requestStatus: string
+  requestStatus: DemoRequestStatus
+  settlementStatus: DemoProcessStatus
+  settledAt: string | null
+  adminNote: string
+  onPayout: (adminNote: string) => void
+  onPayoutReject: (adminNote: string) => void
 }
 
 export function MissionInfoTab({
   mission,
   requestStatus,
+  settlementStatus,
+  settledAt,
+  adminNote,
+  onPayout,
+  onPayoutReject,
 }: MissionInfoTabProps) {
+  const [copied, setCopied] = useState(false)
+  const [payoutOpen, setPayoutOpen] = useState(false)
+  const copySupported = canCopyToClipboard()
+
   if (!mission) {
     return (
       <EmptyState
@@ -29,44 +47,8 @@ export function MissionInfoTab({
     )
   }
 
-  return (
-    <MissionInfoView
-      key={mission.missionId}
-      mission={mission}
-      requestStatus={requestStatus}
-    />
-  )
-}
-
-function MissionInfoView({
-  mission,
-  requestStatus,
-}: {
-  mission: DemoMission
-  requestStatus: string
-}) {
-  const [copied, setCopied] = useState(false)
-  const copySupported = canCopyToClipboard()
-  const [settlementStatus, setSettlementStatus] = useState<DemoProcessStatus>(
-    mission.settlementStatus,
-  )
-  const [settledAt, setSettledAt] = useState(mission.settledAt)
-  const [payoutOpen, setPayoutOpen] = useState(false)
-
   const payoutRequired =
     mission.status === '완료' && settlementStatus === '미처리'
-
-  const handlePayout = () => {
-    setSettlementStatus('처리 완료')
-    setSettledAt(new Date().toISOString().slice(0, 16).replace('T', ' '))
-    setPayoutOpen(false)
-  }
-
-  const handleReject = () => {
-    setSettlementStatus('반려')
-    setSettledAt(new Date().toISOString().slice(0, 16).replace('T', ' '))
-    setPayoutOpen(false)
-  }
 
   const handleCopy = () => {
     copyToClipboard(mission.openChatUrl).then(setCopied, () => setCopied(false))
@@ -89,7 +71,10 @@ function MissionInfoView({
         }
         items={[
           { label: '미션 ID', value: mission.missionId },
-          { label: '상태', value: <StatusBadge label={mission.status} shape="pill" /> },
+          {
+            label: '상태',
+            value: <StatusBadge label={mission.status} shape="pill" />,
+          },
           { label: '행님', value: mission.hyungnimName },
           { label: '꼬붕', value: mission.kkobungName },
           {
@@ -115,6 +100,15 @@ function MissionInfoView({
                   value: settledAt ?? (
                     <span className="or-flag-off">아직 입금되지 않았습니다.</span>
                   ),
+                },
+                {
+                  label: '관리자 메모',
+                  value:
+                    adminNote === '' ? (
+                      <span className="or-flag-off">작성된 메모가 없습니다.</span>
+                    ) : (
+                      adminNote
+                    ),
                 },
               ]
             : []),
@@ -159,10 +153,16 @@ function MissionInfoView({
         payoutAmount={mission.payoutAmount}
         payoutAccount={mission.payoutAccount}
         payoutAccountHolder={mission.payoutAccountHolder}
-        onClose={() => setPayoutOpen(false)}
         requestStatus={requestStatus}
-        onConfirm={handlePayout}
-        onReject={handleReject}
+        onClose={() => setPayoutOpen(false)}
+        onConfirm={(note) => {
+          onPayout(note)
+          setPayoutOpen(false)
+        }}
+        onReject={(note) => {
+          onPayoutReject(note)
+          setPayoutOpen(false)
+        }}
       />
     </div>
   )

@@ -16,16 +16,18 @@ import type { DisputeOutcome } from '../../disputes/modals/DisputeResolveModal'
 interface DisputeInfoTabProps {
   dispute: DemoDispute | undefined
   disputeStatus: DemoProcessStatus
+  adminNote: string
   requestStatus: DemoRequestStatus
   offerStatus: DemoOfferStatus
   missionStatus: DemoMissionStatus
-  onResolve: (outcome: DisputeOutcome) => void
+  onResolve: (outcome: DisputeOutcome, note: string) => void
   onReject: (reason: string) => void
 }
 
 export function DisputeInfoTab({
   dispute,
   disputeStatus,
+  adminNote,
   requestStatus,
   offerStatus,
   missionStatus,
@@ -91,6 +93,15 @@ export function DisputeInfoTab({
             ),
           },
           { label: '신청일', value: dispute.requestedAt },
+          {
+            label: '관리자 메모',
+            value:
+              adminNote === '' ? (
+                <span className="or-flag-off">작성된 메모가 없습니다.</span>
+              ) : (
+                adminNote
+              ),
+          },
         ]}
       />
 
@@ -137,8 +148,8 @@ export function DisputeInfoTab({
           { label: '요청', id: dispute.proposalId, currentStatus: requestStatus },
         ]}
         onClose={() => setResolveOpen(false)}
-        onConfirm={(outcome) => {
-          onResolve(outcome)
+        onConfirm={(outcome, note) => {
+          onResolve(outcome, note)
           setResolveOpen(false)
         }}
         onReject={(reason) => {

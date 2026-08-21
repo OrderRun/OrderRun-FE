@@ -2,12 +2,13 @@ import { useState } from 'react'
 import { ConfirmModal } from '../../../components/ConfirmModal'
 import { StatusBadge } from '../../../components/StatusBadge'
 import { formatAmount } from '../../../components/formatters'
+import type { DemoRequestStatus } from '../../../demo/demoTypes'
 
 interface RefundProcessModalProps {
   open: boolean
   proposalId: string
   amount: number
-  requestStatus: string
+  requestStatus: DemoRequestStatus
   refundAccount: string
   accountHolderName: string
   onClose: () => void
@@ -33,12 +34,17 @@ function RefundProcessModalContent({
   onReject,
 }: RefundProcessModalProps) {
   const [adminNote, setAdminNote] = useState('')
+  const alreadyCancelled = requestStatus === '취소'
 
   return (
     <ConfirmModal
       open
       title="환불 처리"
-      description="환불을 완료 처리하면 요청도 취소로 변경됩니다. 반려하면 요청 상태는 그대로입니다."
+      description={
+        alreadyCancelled
+          ? '이미 취소된 요청의 환불입니다. 완료 또는 반려 처리해도 요청 상태는 그대로입니다.'
+          : '환불을 완료 처리하면 요청도 취소로 변경됩니다. 반려하면 요청 상태는 그대로입니다.'
+      }
       confirmLabel="환불 완료"
       rejectLabel="반려"
       onReject={() => onReject(adminNote.trim())}
@@ -56,11 +62,15 @@ function RefundProcessModalContent({
         </div>
         <div className="or-kv-row">
           <span className="or-kv-label">요청 상태</span>
-          <span className="or-transition">
+          {alreadyCancelled ? (
             <StatusBadge label={requestStatus} />
-            <span className="or-transition-arrow">→</span>
-            <StatusBadge label="취소" />
-          </span>
+          ) : (
+            <span className="or-transition">
+              <StatusBadge label={requestStatus} />
+              <span className="or-transition-arrow">→</span>
+              <StatusBadge label="취소" />
+            </span>
+          )}
         </div>
       </div>
 

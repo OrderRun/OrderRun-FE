@@ -4,21 +4,35 @@ import { EmptyState } from '../../../components/EmptyState'
 import { InfoCard } from '../../../components/InfoCard'
 import { StatusBadge } from '../../../components/StatusBadge'
 import { formatAmount } from '../../../components/formatters'
-import type { DemoProcessStatus, DemoRefund } from '../../../demo/demoTypes'
+import type {
+  DemoProcessStatus,
+  DemoRefund,
+  DemoRequestStatus,
+} from '../../../demo/demoTypes'
 import { RefundProcessModal } from '../modals/RefundProcessModal'
 
 interface RefundInfoTabProps {
   refund: DemoRefund | undefined
-  requestStatus: string
+  requestStatus: DemoRequestStatus
+  refundStatus: DemoProcessStatus
+  processedAt: string | null
+  adminNote: string
   /** 환불이 완료되면 요청도 취소로 바뀐다. */
-  onRequestCancel: () => void
+  onProcess: (adminNote: string) => void
+  onReject: (adminNote: string) => void
 }
 
 export function RefundInfoTab({
   refund,
   requestStatus,
-  onRequestCancel,
+  refundStatus,
+  processedAt,
+  adminNote,
+  onProcess,
+  onReject,
 }: RefundInfoTabProps) {
+  const [processOpen, setProcessOpen] = useState(false)
+
   if (!refund) {
     return (
       <EmptyState
@@ -28,53 +42,7 @@ export function RefundInfoTab({
     )
   }
 
-  return (
-    <RefundInfoView
-      key={refund.proposalId}
-      refund={refund}
-      requestStatus={requestStatus}
-      onRequestCancel={onRequestCancel}
-    />
-  )
-}
-
-function RefundInfoView({
-  refund,
-  requestStatus,
-  onRequestCancel,
-}: {
-  refund: DemoRefund
-  requestStatus: string
-  onRequestCancel: () => void
-}) {
-  const [status, setStatus] = useState<DemoProcessStatus>(refund.status)
-  const [processedAt, setProcessedAt] = useState(refund.processedAt)
-  const [adminNote, setAdminNote] = useState(refund.adminNote)
-  const [processOpen, setProcessOpen] = useState(false)
-
-  const nowStamp = () =>
-    new Date().toISOString().slice(0, 16).replace('T', ' ')
-
-  const alreadyProcessed = status !== '미처리'
-
-  const handleProcess = (note: string) => {
-    setStatus('처리 완료')
-    setProcessedAt(nowStamp())
-    if (note !== '') {
-      setAdminNote(note)
-    }
-    onRequestCancel()
-    setProcessOpen(false)
-  }
-
-  const handleReject = (reason: string) => {
-    setStatus('반려')
-    setProcessedAt(nowStamp())
-    if (reason !== '') {
-      setAdminNote(reason)
-    }
-    setProcessOpen(false)
-  }
+  const alreadyProcessed = refundStatus !== '미처리'
 
   return (
     <>
@@ -92,7 +60,10 @@ function RefundInfoView({
           )
         }
         items={[
-          { label: '환불 상태', value: <StatusBadge label={status} shape="pill" /> },
+          {
+            label: '환불 상태',
+            value: <StatusBadge label={refundStatus} shape="pill" />,
+          },
           { label: '환불 금액', value: formatAmount(refund.amount) },
           { label: '환불 사유', value: refund.reason },
           { label: '요청일', value: refund.requestedAt, newRow: true },
@@ -122,8 +93,14 @@ function RefundInfoView({
         refundAccount={refund.refundAccount}
         accountHolderName={refund.accountHolderName}
         onClose={() => setProcessOpen(false)}
-        onConfirm={handleProcess}
-        onReject={handleReject}
+        onConfirm={(note) => {
+          onProcess(note)
+          setProcessOpen(false)
+        }}
+        onReject={(note) => {
+          onReject(note)
+          setProcessOpen(false)
+        }}
       />
     </>
   )

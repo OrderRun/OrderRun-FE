@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { ConfirmModal } from '../../../components/ConfirmModal'
 import { StatusBadge } from '../../../components/StatusBadge'
 import { formatAmount } from '../../../components/formatters'
+import type { DemoRequestStatus } from '../../../demo/demoTypes'
 
 interface MissionPayoutModalProps {
   open: boolean
@@ -9,7 +10,7 @@ interface MissionPayoutModalProps {
   payoutAmount: number
   payoutAccount: string
   payoutAccountHolder: string
-  requestStatus: string
+  requestStatus: DemoRequestStatus
   onClose: () => void
   onConfirm: (adminNote: string) => void
   onReject: (adminNote: string) => void
@@ -38,7 +39,7 @@ function MissionPayoutModalContent({
     <ConfirmModal
       open
       title="수행비 입금"
-      description="꼬붕에게 수행비를 입금한 뒤 처리 완료로 변경합니다."
+      description="꼬붕에게 수행비를 입금한 뒤 처리 완료로 변경합니다. 요청 상태는 바뀌지 않습니다."
       confirmLabel="입금 완료"
       rejectLabel="반려"
       onReject={() => onReject(adminNote.trim())}
@@ -56,11 +57,7 @@ function MissionPayoutModalContent({
         </div>
         <div className="or-kv-row">
           <span className="or-kv-label">요청 상태</span>
-          <span className="or-transition">
-            <StatusBadge label={requestStatus} />
-            <span className="or-transition-arrow">→</span>
-            <StatusBadge label={requestStatus} />
-          </span>
+          <StatusBadge label={requestStatus} />
         </div>
       </div>
 
