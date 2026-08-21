@@ -48,3 +48,11 @@ instead of adding a second one. Never copy a promoted rule into `CLAUDE.md`,
 Planner, Implementer, and Reviewer never modify Harness documents. Promotion is a
 separate step outside the lane, performed only with explicit user approval, and
 recorded in `changelog.md` with date, change, updated shared source, and reason.
+
+## 2026-08-21 — Ambiguous commit messages
+
+- Area/role: Git and commit handoff
+- Cause and recurrence risk: A short open-ended convention lets humans and AI choose inconsistent types, language, and vague summaries across every change.
+- Impact: Commit history loses purpose and becomes harder to scan or automate against.
+- Candidate rule and narrow target: Define one closed Conventional Commit format and summary policy in `rules/git.md`.
+- Decision: promoted — the user explicitly confirmed this project-wide convention.

@@ -11,6 +11,7 @@
 | 2026-08-21 | Made implementer resume explicit for Claude, removed restated rules from Codex adapter | `.claude/skills/orderrun-development`, `.codex/skills/orderrun-development` | keep runtime adapters symmetric and invocation-only |
 | 2026-08-21 | Moved shared Root authority under `.harness/`, unified mutation guard, clarified Lane A routing, reduced README to index | `root.md`, `rules/mutation-guard.md`, workflows/adapters/README | close Harness audit findings without provider drift |
 | 2026-08-21 | Scoped mutation guard to the git-observable area, added digest-only snapshot comparison, symmetrized the Codex entry point, set the new-document language | `rules/mutation-guard.md`, `root.md`, `AGENTS.md`, `workflows/standard.md`, `validation/dry-run.md` | the guard claimed a `_workspace/` guarantee gitignore makes impossible |
+| 2026-08-21 | Defined the closed Conventional Commit format, Korean summary policy, and allowed types | `rules/git.md`, `evolution/learnings.md` | remove ambiguity from human and AI commit messages |
 
 ## Migration coverage
 
