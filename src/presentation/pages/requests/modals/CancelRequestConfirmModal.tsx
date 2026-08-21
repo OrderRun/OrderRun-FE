@@ -8,6 +8,8 @@ interface CancelRequestConfirmModalProps {
   proposalId: string
   currentStatus: string
   offerCount: number
+  /** 연결된 미션이 있으면 요청 취소가 미션까지 함께 취소한다. */
+  hasMission: boolean
   refundRequired: boolean
   onClose: () => void
   onConfirm: (adminNote: string) => void
@@ -26,6 +28,7 @@ function CancelRequestConfirmModalContent({
   proposalId,
   currentStatus,
   offerCount,
+  hasMission,
   refundRequired,
   onClose,
   onConfirm,
@@ -36,7 +39,11 @@ function CancelRequestConfirmModalContent({
     <ConfirmModal
       open
       title="요청을 취소하시겠습니까?"
-      description="아직 미션이 생성되지 않았습니다."
+      description={
+        hasMission
+          ? '연결된 미션도 함께 취소됩니다.'
+          : '아직 미션이 생성되지 않았습니다.'
+      }
       confirmLabel="요청 취소"
       confirmVariant="destructive"
       closeLabel="닫기"

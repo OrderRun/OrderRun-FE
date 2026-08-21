@@ -140,8 +140,12 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
   const handleResolveDispute = (outcome: DisputeOutcome, note: string) => {
     if (outcome === '미션 완료') {
       setStatus('완료')
-      setOfferStatus('완료')
-      setMissionStatus('완료')
+      if (selectedOffer) {
+        setOfferStatus('완료')
+      }
+      if (mission) {
+        setMissionStatus('완료')
+      }
     } else {
       applyCancelCascade()
     }
@@ -329,6 +333,7 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
         proposalId={request.proposalId}
         currentStatus={status}
         offerCount={offers.length}
+        hasMission={mission !== undefined}
         refundRequired={refundRequired}
         onClose={() => setCancelModalOpen(false)}
         onConfirm={handleCancelRequest}

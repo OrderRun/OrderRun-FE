@@ -21,8 +21,6 @@ const TONE_BY_LABEL: Record<string, StatusTone> = {
   미처리: 'rose',
   '처리 완료': 'green',
   '반려': 'crimson',
-  환불: 'gray',
-  신고: 'gray',
   행님: 'violet',
   꼬붕: 'cobalt',
 }
