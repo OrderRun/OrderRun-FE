@@ -57,7 +57,11 @@ function MissionPayoutModalContent({
         </div>
         <div className="or-kv-row">
           <span className="or-kv-label">요청 상태</span>
-          <StatusBadge label={requestStatus} />
+          <span className="or-transition">
+            <StatusBadge label={requestStatus} />
+            <span className="or-transition-arrow">→</span>
+            <StatusBadge label={requestStatus} />
+          </span>
         </div>
       </div>
 
