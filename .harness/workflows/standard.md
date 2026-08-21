@@ -11,12 +11,9 @@ Run the canonical roles in order:
 Their definitions own permissions, inputs, outputs, and handoffs; this workflow
 owns only sequencing and retries. Planner blockers pause for user confirmation.
 
-Before each planner or reviewer call, capture and afterwards compare:
-
-```sh
-git status --porcelain -- src package.json tsconfig.json tsconfig.app.json tsconfig.node.json eslint.config.js index.html
-```
-
-Any change by either role invalidates that stage. On FIX_REQUIRED, resume the
+Before and after each Planner or Reviewer call, apply the shared
+[`mutation-guard.md`](../rules/mutation-guard.md). Any delta in the git-observable project
+area invalidates the stage, including changes made on top of an already-dirty file.
+On FIX_REQUIRED, resume the
 same implementer and change only findings; then rerun reviewer. Escalate after
 three unresolved rounds, a planning defect, or an environment/config failure.

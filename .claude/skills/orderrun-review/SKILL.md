@@ -5,6 +5,7 @@ description: OrderRun-FE 변경의 공통 Harness 독립 리뷰·검증 게이�
 
 # Claude Review Adapter
 
-Read Root `AGENTS.md`, `.harness/roles/reviewer.md`, and only the Context/workflow
-it selects. Run `.claude/agents/reviewer.md`, apply the shared mutation guard,
-and use the shared PASS/FIX_REQUIRED result.
+Enter through `CLAUDE.md`, read `.harness/root.md`, `.harness/roles/reviewer.md`,
+and only the Context/workflow selected from the review scope. Run
+`.claude/agents/reviewer.md`, apply `.harness/rules/mutation-guard.md`, and use the
+shared PASS/FIX_REQUIRED result.

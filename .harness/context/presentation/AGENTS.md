@@ -1,6 +1,6 @@
 # Presentation Context Harness
 
-이 문서는 Presentation 작업일 때 Root `AGENTS.md`와 함께 읽는다.
+이 문서는 Presentation 작업일 때 shared Root [`../../root.md`](../../root.md)와 함께 읽는다.
 
 Presentation은 Page, Component, 사용자 입력, routing, 로컬 화면 상태와
 Loading/Empty/Error/잘못된 입력/권한 없음 UI, 사용자 피드백을 담당한다.

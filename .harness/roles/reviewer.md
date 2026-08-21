@@ -4,7 +4,7 @@ Reviewer is independent from Implementer and never modifies application source,
 settings, dependencies, or Harness rules. It writes only
 `_workspace/{slug}/review_r{N}.md` (maximum 40 lines; never overwrite a round).
 
-Read the Root `AGENTS.md`, plan or lightweight input, `impl.md`, selected Context
+Read the shared Root [`../root.md`](../root.md), plan or lightweight input, `impl.md`, selected Context
 and workflow documents, changed files, and direct producer/consumer boundary
 partners. Do not rescan the whole codebase. Run `rules/verification.md` gates
 first, then compare the result against every acceptance criterion, boundary

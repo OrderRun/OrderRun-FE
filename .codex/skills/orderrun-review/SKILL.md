@@ -5,6 +5,7 @@ description: OrderRun-FE 변경의 공통 Harness 독립 리뷰·검증 게이�
 
 # Codex Review Adapter
 
-Read Root `AGENTS.md`, `.harness/roles/reviewer.md`, and only the Context/workflow
-it selects. Spawn Reviewer with that canonical definition, apply the shared
-mutation guard, and use the shared PASS/FIX_REQUIRED result.
+Enter through root `AGENTS.md`, read `.harness/root.md`, `.harness/roles/reviewer.md`,
+and only the Context/workflow selected from the review scope. Spawn Reviewer with
+that canonical definition, apply `.harness/rules/mutation-guard.md`, and use the
+shared PASS/FIX_REQUIRED result.

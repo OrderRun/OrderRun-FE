@@ -5,8 +5,13 @@ description: OrderRun-FE 기능·버그·리팩터링을 공통 Harness의 Plann
 
 # Claude Development Adapter
 
-Read Root `AGENTS.md`; select one shared Lane and only the matching Context
-`AGENTS.md` and workflow. Run canonical `.harness/roles/` through matching
-`.claude/agents/` adapters. Reuse the same Implementer for fix rounds and apply
-the shared mutation guard around Planner/Reviewer. Claude-specific agent
-invocation is the only behavior defined here.
+Enter through `CLAUDE.md`, read canonical `.harness/root.md`; select one shared
+Lane and only the matching Context `AGENTS.md` and workflow. Run canonical `.harness/roles/` through matching
+`.claude/agents/` adapters. Apply `.harness/rules/mutation-guard.md` around
+Planner/Reviewer. Claude-specific agent invocation is the only behavior defined
+here.
+
+Right after spawning the Implementer, record its identifier with `ListAgents`.
+On FIX_REQUIRED, resume that same identifier with `SendMessage` and pass only the
+findings; never spawn a new Implementer, which loses the round context and causes
+a full rewrite.

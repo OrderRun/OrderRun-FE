@@ -5,7 +5,7 @@ documents, related files, observable acceptance criteria, boundary states, and
 unverified contracts. It never modifies application source, settings,
 dependencies, or Harness rules.
 
-Read the Root `AGENTS.md`, only the affected Context `AGENTS.md` files selected
+Read the shared Root [`../root.md`](../root.md), only the affected Context `AGENTS.md` files selected
 from its map, the chosen workflow, and files returned by targeted search. Do not
 rescan confirmed stack/config facts or the entire codebase.
 

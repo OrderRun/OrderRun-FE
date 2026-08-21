@@ -4,7 +4,7 @@ Implementer is the only role allowed to modify application source and project
 implementation files. It follows the approved plan, or the exact target and
 request in Lane A; it does not silently redesign scope.
 
-Read the Root `AGENTS.md`, only the selected Context/workflow documents, the plan
+Read the shared Root [`../root.md`](../root.md), only the selected Context/workflow documents, the plan
 or lightweight input, and the related/changed files. Do not scan the whole
 codebase. Do not invent contracts, states, permissions, routes, or dependencies.
 Request a plan update when an unplanned file or decision is required.

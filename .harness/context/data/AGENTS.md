@@ -1,6 +1,6 @@
 # Data Context Harness
 
-이 문서는 Data 작업일 때 Root `AGENTS.md`와 함께 읽는다.
+이 문서는 Data 작업일 때 shared Root [`../../root.md`](../../root.md)와 함께 읽는다.
 
 Data는 API client, endpoint 호출, Request/Response DTO, mapper, 요청 상태와 API 오류
 변환을 담당한다.

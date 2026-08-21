@@ -5,15 +5,13 @@ description: OrderRun-FE 기능·버그·리팩터링을 공통 Harness의 Plann
 
 # Codex Development Adapter
 
-Read Root `AGENTS.md`, select the Lane, then load only its matching Context
-`AGENTS.md` and workflow. The shared Harness is the source of all decisions.
+Enter through root `AGENTS.md`, read canonical `.harness/root.md`, select the Lane,
+then load only its matching Context `AGENTS.md` and workflow. The shared Harness
+is the source of all decisions.
 
 Use available Codex collaboration tools to spawn separate agents whose prompts
 require the matching canonical files in `.harness/roles/`: Planner,
 Implementer, and Reviewer. Keep the Implementer agent alive and use a follow-up
-task for review fixes. Apply the shared source-mutation guard before and after
+task for review fixes. Apply `.harness/rules/mutation-guard.md` before and after
 each Planner/Reviewer call. Codex-specific tool invocation is the only behavior
 defined here.
-
-Stop for shared workflow blockers, return FIX_REQUIRED on a failed gate or
-review, and declare completion only under the shared verification rule.

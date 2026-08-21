@@ -1,6 +1,6 @@
 # Domain Context Harness
 
-이 문서는 Domain 작업일 때 Root `AGENTS.md`와 함께 읽는다.
+이 문서는 Domain 작업일 때 shared Root [`../../root.md`](../../root.md)와 함께 읽는다.
 
 Domain은 플랫폼 독립적인 model, validation, 상태와 상태 전이, 비즈니스 판단·계산을
 담당하며 가능한 한 순수 TypeScript로 작성한다.
