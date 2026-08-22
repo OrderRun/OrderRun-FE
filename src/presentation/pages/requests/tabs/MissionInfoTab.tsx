@@ -84,6 +84,19 @@ export function MissionInfoTab({
           },
           { label: '선택된 지원', value: `지원 #${mission.offerId}` },
           { label: '생성일', value: mission.createdAt },
+          {
+            label: '행님 완료 시각',
+            value: mission.hyungnimCompletedAt ?? (
+              <span className="or-flag-off">아직 완료하지 않았습니다.</span>
+            ),
+            newRow: true,
+          },
+          {
+            label: '꼬붕 완료 시각',
+            value: mission.kkobungCompletedAt ?? (
+              <span className="or-flag-off">아직 완료하지 않았습니다.</span>
+            ),
+          },
           ...(mission.status === '완료'
             ? [
                 {
