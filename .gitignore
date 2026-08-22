@@ -25,3 +25,6 @@ dist-ssr
 
 # Harness workspace (에이전트 중간 산출물)
 _workspace/
+
+# Harness usage monitoring (raw local metrics, never committed)
+.harness/metrics/

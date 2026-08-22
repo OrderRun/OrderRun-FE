@@ -9,6 +9,13 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint . --max-warnings 0",
+    "harness:usage": "node scripts/harness-usage/report.mjs",
+    "harness:monitor": "node scripts/harness-usage/monitor.mjs",
+    "harness:usage:snapshot": "node scripts/harness-usage/snapshot.mjs",
+    "harness:usage:collect": "node scripts/harness-usage/collect.mjs",
+    "harness:usage:start": "node scripts/harness-usage/run-boundary.mjs start",
+    "harness:usage:end": "node scripts/harness-usage/run-boundary.mjs end",
+    "harness:usage:test": "node --test 'scripts/harness-usage/**/*.test.mjs'",
     "api:sync": "curl -s \"$(sed -n 's/^VITE_API_BASE_URL=//p' .env.development.local)/openapi.json\" -o docs/api-spec/openapi.json"
   },
   "dependencies": {

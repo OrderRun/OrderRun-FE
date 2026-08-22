@@ -88,6 +88,21 @@ BLOCKER/MAJOR가 있으면 FIX_REQUIRED다. 실행·확인하지 못한 runtime,
 Git/commit/PR은 `rules/git.md`, 규칙 학습·승격은 `evolution/`을 따른다. 사용자가
 명시하지 않으면 commit, push, PR을 수행하지 않는다.
 
+## Usage Monitoring
+
+`monitoring/`은 역할별 Token 사용량을 기록하는 관측 계층이며, 역할 권한·Lane·
+Mutation Guard·Verification Gate·판정 기준을 바꾸지 않는다. 오케스트레이터는 각
+Agent 호출이 끝날 때 로컬 스크립트로 사용량을 기록하고, Run 시작·종료에 boundary를
+찍어 orchestrator 사용량을 세션 누적이 아닌 해당 Run delta로 기록한다. 집계에 별도 Agent를
+쓰지 않고 transcript 내용을 Agent context에 넣지 않는다. 수집 실패는 Monitoring
+Warning이며 FAIL이 아니다. 세부는 `monitoring/README.md`를 따른다.
+
+수집은 `npm run harness:monitor`로 상시 실행하는 로컬 watcher가 담당하며, 결과는
+gitignore된 `.harness/metrics/raw/`에 누적된다. 모든 기록에는 `.harness/VERSION`의
+Harness Version과 Lane을 남겨 Version별·Lane별 비교가 가능하게 한다. Harness 구조를
+바꾸는 변경에서는 같은 변경 안에서 `.harness/VERSION`을 올린다. Usage 수치는 사람이
+읽는 근거일 뿐이며 Harness 규칙을 자동으로 바꾸지 않는다.
+
 새로 추가하는 Harness 규칙 문서는 영어로 작성한다. 기존 문서를 번역하지 않으며, 기존
 문서를 수정할 때는 그 문서의 언어를 그대로 따른다.
 

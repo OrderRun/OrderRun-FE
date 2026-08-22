@@ -1,0 +1,73 @@
+{
+  "generatedAt": "2026-08-22T02:42:36.051Z",
+  "totals": {
+    "invocations": 10,
+    "runs": 1
+  },
+  "definitions": {
+    "processedTokens": "fresh input + output + cache read + cache write",
+    "caveat": "processedTokens != billing cost, != subscription usage, != actually charged tokens",
+    "providerComparison": "raw token processing comparison only; no pricing model is applied",
+    "collection": "local Node scripts parsing runtime transcripts; 0 AI calls"
+  },
+  "byHarnessVersion": {
+    "1.0.0": {
+      "invocations": 10,
+      "runs": 1,
+      "avgProcessedTokensPerInvocation": 781108,
+      "avgProcessedTokensPerRun": 12120,
+      "avgOutputTokensPerInvocation": 9211,
+      "avgRevisionRounds": 0,
+      "revisionRoundsSample": 1,
+      "reviewerFirstPassRate": 1,
+      "reviewerFirstPassSample": 1
+    }
+  },
+  "versionComparison": [],
+  "byProvider": {
+    "claude": {
+      "invocations": 4,
+      "avgProcessedTokens": 1273294,
+      "avgOutputTokens": 15932
+    },
+    "codex": {
+      "invocations": 6,
+      "avgProcessedTokens": 452984,
+      "avgOutputTokens": 4730
+    }
+  },
+  "byLane": {
+    "unrecorded": {
+      "invocations": 10,
+      "runs": 1,
+      "avgProcessedTokens": 781108
+    }
+  },
+  "byRole": {
+    "planner": {
+      "invocations": 1,
+      "avgProcessedTokens": 1100,
+      "avgOutputTokens": 80
+    },
+    "orchestrator": {
+      "invocations": 2,
+      "avgProcessedTokens": 4350,
+      "avgOutputTokens": 125
+    },
+    "implementer": {
+      "invocations": 2,
+      "avgProcessedTokens": 1111035,
+      "avgOutputTokens": 14909
+    },
+    "reviewer": {
+      "invocations": 2,
+      "avgProcessedTokens": 1434512,
+      "avgOutputTokens": 16960
+    },
+    "unknown": {
+      "invocations": 3,
+      "avgProcessedTokens": 903394,
+      "avgOutputTokens": 9347
+    }
+  }
+}
