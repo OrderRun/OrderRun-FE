@@ -44,8 +44,31 @@ export async function historyReport(args) {
   console.log(`\nHarness Usage — ${days ? `last ${days} day(s)` : 'all history'}  ·  n = ${records.length} invocation(s)`)
 
   const detail = Boolean(args.detail)
-  table('BY PROVIDER', groupBy(records, (r) => r.provider), { detail })
-  table('BY ROLE', groupBy(records, (r) => r.role), { detail })
+
+  // Per provider, one row per Harness role, in the same columns the single-run
+  // report uses. Share is a share of that provider's raw processed tokens.
+  const providers = [...new Set(records.map((r) => r.provider))].sort()
+  for (const provider of providers) {
+    const selected = records.filter((r) => r.provider === provider)
+    const total = selected.reduce((a, r) => a + Number(r.processedTokens ?? 0), 0)
+    console.log(`\n${provider.toUpperCase()}`)
+    console.log(
+      pad('Role', 16) + ['n', 'Output', 'Cache Read', 'Processed Share'].map((h, i) => pad(h, i === 0 ? 6 : 16, true)).join(''),
+    )
+    for (const role of ['planner', 'implementer', 'reviewer', 'orchestrator', 'unknown']) {
+      const rows = selected.filter((r) => r.role === role)
+      if (!rows.length) continue
+      const sum = (f) => rows.reduce((a, r) => a + Number(r[f] ?? 0), 0)
+      console.log(
+        pad(role, 16) +
+          pad(rows.length, 6, true) +
+          pad(fmt(sum('outputTokens')), 16, true) +
+          pad(fmt(sum('cacheReadTokens')), 16, true) +
+          pad(total ? `${((sum('processedTokens') / total) * 100).toFixed(1)}%` : '-', 16, true),
+      )
+    }
+  }
+  if (detail) table('BY PROVIDER (all fields)', groupBy(records, (r) => r.provider), { detail })
   table('BY LANE', groupBy(records, (r) => r.lane ?? 'unrecorded'), { detail })
   table('BY HARNESS VERSION', groupBy(records, (r) => r.harnessVersion ?? 'unrecorded'), { detail })
 

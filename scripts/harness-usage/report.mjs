@@ -68,9 +68,11 @@ function printProvider(provider, records, detail) {
 
 const args = parseArgs(process.argv.slice(2), ['detail', 'json', 'history'])
 
-// --days / --history read the long-term JSONL history; the default view stays
-// the single-run document, unchanged.
-if (args.history || args.days) {
+// The history is the default view: since orchestrator usage is now collected
+// automatically rather than written into a run document, it is the only place
+// every provider and role appears together. `--run <slug>` still prints the
+// single-run document unchanged.
+if (args.history || args.days || (!args.run && !args.json)) {
   await historyReport(args)
   process.exit(0)
 }

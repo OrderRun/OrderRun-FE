@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 // Harness usage monitor — a local, zero-AI watcher.
 //
-//   npm run harness:monitor          # long-lived watcher
-//   npm run harness:monitor -- --once   # one incremental pass, then exit
+//   npm run harness:monitor              # long-lived watcher
+//   npm run harness:monitor -- --once    # one incremental pass, then exit
+//   npm run harness:monitor -- --no-orchestrator   # debugging: leave the main
+//        session alone and use manual harness:usage:start/end deltas instead
 //
 // It spawns no agent, sends nothing anywhere, and reads transcripts line by
 // line for their usage numbers only. AI calls caused by monitoring: 0.
@@ -11,14 +13,19 @@
 //
 //   1. _workspace/{slug}/usage.json — records the existing collectors wrote.
 //      Role, round and run are stated by the orchestrator, so these are
-//      `attribution: "harness"`. Claude orchestrator records stay run-boundary
-//      deltas; the monitor never rescans a main session transcript, so the
-//      delta logic can never regress to session-cumulative.
+//      `attribution: "harness"`.
+//   1b. _workspace/{slug}/runtime/codex-{role}-r{n}.jsonl — a Codex invocation
+//      file the orchestrator named when it ran it. Role, round and run come
+//      from that name, so Codex invocations are attributed without any manual
+//      collect step and without reading transcript content.
 //   2. Claude subagent transcripts for this project directory. Role comes from
 //      the sibling agent-*.meta.json `agentType` — a file, not an inference.
-//      These are `attribution: "auto"` and fill in invocations nobody collected.
-//   3. Codex rollout JSONL whose session_meta cwd is this project. Codex does
-//      not record a Harness role, so role is `unknown` rather than guessed.
+//   2b. The Claude main session transcript, read incrementally from a stored
+//      byte offset and recorded as `orchestrator`. Never the session-cumulative
+//      total; sidechain (subagent) lines are excluded.
+//   3. Codex rollout JSONL whose session_meta cwd is this project. A rollout the
+//      Harness did not name carries no role, so it stays `unknown` rather than
+//      being guessed; one that matches a named invocation collapses onto it.
 //
 // A record observed by both 1 and 2/3 collapses on read (provider + sourceId),
 // with the harness-attributed copy winning. Re-running the monitor, or
@@ -40,7 +47,7 @@ import { harnessVersion, runMeta } from './lib/runmeta.mjs'
 import { parseArgs, warn } from './store.mjs'
 
 const ROOT = process.cwd()
-const args = parseArgs(process.argv.slice(2), ['once', 'verbose'])
+const args = parseArgs(process.argv.slice(2), ['once', 'verbose', 'no-orchestrator'])
 const QUIET_MS = Number(args.quiet ?? 15_000)
 const POLL_MS = Math.max(5_000, Number(args.interval ?? 30_000))
 const VERBOSE = Boolean(args.verbose)
@@ -87,9 +94,22 @@ async function ingestRunDocs(state, now, out) {
     }
     const meta = runMeta(slug, ROOT)
     for (const agent of Array.isArray(doc.agents) ? doc.agents : []) {
+      // The Claude orchestrator is measured automatically from the main session
+      // now. A manual harness:usage:start/end delta covers exactly the same
+      // tokens, so ingesting both would double-count; the manual record is
+      // skipped unless auto collection is switched off for debugging.
+      const provider = agent.provider ?? doc.provider ?? 'unknown'
+      if (
+        !args['no-orchestrator'] &&
+        provider === 'claude' &&
+        agent.role === 'orchestrator' &&
+        agent.measurementMode === 'run_delta'
+      ) {
+        continue
+      }
       out.push(
         toHistoryRecord(
-          { ...agent, provider: agent.provider ?? doc.provider ?? 'unknown', status: 'completed' },
+          { ...agent, provider, status: 'completed' },
           {
             runId: doc.run ?? slug,
             harnessVersion: harnessVersion(ROOT),
@@ -153,6 +173,186 @@ async function ingestClaude(state, now, out) {
         ),
       )
     }
+  }
+}
+
+// ------------------------------------------------- source 2b: orchestrator
+//
+// The orchestrator drives the run from the main session transcript, which is
+// append-only and outlives any single run. It is therefore read *incrementally*
+// from a persisted byte offset: each pass records only what was appended since
+// the previous one, never the session-cumulative total. That keeps the numbers
+// on the same per-slice footing the run-boundary delta produced, without the
+// user having to type start/end.
+//
+// A message.id repeated across passes (a streamed response split by the offset
+// boundary) contributes only its growth, because the per-message figures
+// already recorded are kept in the cursor.
+
+const RECENT_MESSAGES = 80
+
+function orchestratorSlice(scan, recorded) {
+  const totals = { inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheCreationTokens: 0 }
+  const seen = {}
+  for (const [id, m] of scan.byMessage) {
+    const prev = recorded[id]
+    // Only the increase counts: input/cache stay constant across a streamed
+    // response and output grows, so a message seen in an earlier pass adds only
+    // what it gained since.
+    totals.inputTokens += prev ? Math.max(0, m.input - prev.i) : m.input
+    totals.outputTokens += prev ? Math.max(0, m.output - prev.o) : m.output
+    totals.cacheReadTokens += prev ? Math.max(0, m.cacheRead - prev.r) : m.cacheRead
+    totals.cacheCreationTokens += prev ? Math.max(0, m.cacheCreation - prev.w) : m.cacheCreation
+    seen[id] = { i: m.input, o: m.output, r: m.cacheRead, w: m.cacheCreation }
+  }
+  return { totals, seen }
+}
+
+/**
+ * Resume point for a session whose cursor was lost: the highest end offset
+ * already recorded in the history for it. Without this a deleted state file
+ * would re-record the whole session as one new slice.
+ */
+function offsetFromHistory(known, sessionId) {
+  let max = 0
+  for (const key of known.keys()) {
+    const [provider, sourceId] = key.split('|')
+    if (provider !== 'claude' || !sourceId?.startsWith(`${sessionId}#`)) continue
+    const end = Number(sourceId.split('-').pop())
+    if (Number.isFinite(end) && end > max) max = end
+  }
+  return max
+}
+
+async function ingestClaudeOrchestrator(state, now, out, known) {
+  if (args['no-orchestrator']) return
+  for (const { sessionId, transcript } of claude.listMainSessions(ROOT)) {
+    const stat = safeStat(transcript)
+    state.providers.claudeMain ??= {}
+    const cursor = state.providers.claudeMain[sessionId]
+    if (!changedAndSettled(cursor, stat, now)) continue
+
+    const start = cursor?.offset ?? offsetFromHistory(known, sessionId)
+    let scan
+    try {
+      // Sidechain lines are subagent usage, already recorded per invocation.
+      scan = await claude.scanUsage(transcript, { mainSessionOnly: true, start })
+    } catch (e) {
+      warn(`claude orchestrator ${sessionId}: ${e.message}`)
+      continue
+    }
+    const { totals, seen } = orchestratorSlice(scan, cursor?.messages ?? {})
+    const messages = { ...(cursor?.messages ?? {}), ...seen }
+    const trimmed = Object.fromEntries(Object.entries(messages).slice(-RECENT_MESSAGES))
+    state.providers.claudeMain[sessionId] = {
+      size: stat.size,
+      mtimeMs: stat.mtimeMs,
+      offset: scan.endOffset,
+      messages: trimmed,
+    }
+    const processed = Object.values(totals).reduce((a, b) => a + b, 0)
+    if (!processed) continue
+    if (scan.malformed) debug(`claude orchestrator ${sessionId}: ${scan.malformed} unusable event(s) skipped`)
+    out.push(
+      toHistoryRecord(
+        {
+          provider: 'claude',
+          role: 'orchestrator',
+          round: 1,
+          model: scan.model,
+          finishedAt: scan.lastTs,
+          durationMs:
+            scan.firstTs && scan.lastTs ? Date.parse(scan.lastTs) - Date.parse(scan.firstTs) : undefined,
+          ...totals,
+          reasoningOutputTokens: 0,
+          // The slice's byte range makes each increment its own identity, so a
+          // re-observed slice collapses instead of accumulating.
+          sourceId: `${sessionId}#${scan.fromOffset}-${scan.endOffset}`,
+          measurementMode: 'run_delta',
+          status: 'completed',
+        },
+        { harnessVersion: harnessVersion(ROOT), attribution: 'auto' },
+      ),
+    )
+  }
+}
+
+// ------------------------------------------------- source 3a: codex by role
+//
+// The orchestrator already names each Codex invocation file when it runs it:
+// _workspace/{slug}/runtime/codex-{role}-r{n}.jsonl. Role, round and run come
+// from that name — metadata chosen at invocation time, never inferred from
+// transcript content and never classified by a model. A name that does not
+// match is skipped rather than guessed.
+
+const RUNTIME_NAME = /^codex-(planner|implementer|reviewer)(?:-r(\d+))?\.jsonl$/
+
+function codexRuntimeFiles() {
+  const ws = path.join(ROOT, '_workspace')
+  if (!existsSync(ws)) return []
+  const files = []
+  for (const slug of readdirSync(ws)) {
+    const dir = path.join(ws, slug, 'runtime')
+    if (!existsSync(dir)) continue
+    for (const name of readdirSync(dir)) {
+      const match = RUNTIME_NAME.exec(name)
+      if (!match) continue
+      files.push({
+        file: path.join(dir, name),
+        runId: slug,
+        role: match[1],
+        round: Number(match[2] ?? 1),
+      })
+    }
+  }
+  return files
+}
+
+async function ingestCodexRuntime(state, now, out) {
+  for (const { file, runId, role, round } of codexRuntimeFiles()) {
+    const stat = safeStat(file)
+    const key = path.relative(ROOT, file)
+    const cursor = state.providers.codexRuntime?.[key]
+    if (!changedAndSettled(cursor, stat, now)) continue
+    state.providers.codexRuntime ??= {}
+    state.providers.codexRuntime[key] = { size: stat.size, mtimeMs: stat.mtimeMs }
+    let scan
+    try {
+      // Same parser as before: turn.completed.usage first, last_token_usage as
+      // the fallback, cumulative total_token_usage never summed.
+      scan = await codex.scanCodexTranscript(file)
+    } catch (e) {
+      warn(`codex ${key}: ${e.message}`)
+      continue
+    }
+    if (scan.malformed) debug(`codex ${key}: ${scan.malformed} unusable event(s) skipped`)
+    const meta = runMeta(runId, ROOT)
+    out.push(
+      toHistoryRecord(
+        {
+          provider: 'codex',
+          role,
+          round,
+          model: scan.model,
+          finishedAt: scan.lastTs,
+          durationMs:
+            scan.firstTs && scan.lastTs ? Date.parse(scan.lastTs) - Date.parse(scan.firstTs) : undefined,
+          ...scan.totals,
+          // The thread id, so the same invocation seen as a ~/.codex rollout
+          // collapses onto this better-attributed record.
+          sourceId: scan.sourceId ?? key,
+          status: 'completed',
+        },
+        {
+          runId,
+          harnessVersion: harnessVersion(ROOT),
+          lane: meta.lane,
+          laneSource: meta.laneSource,
+          quality: meta.quality,
+          attribution: 'harness',
+        },
+      ),
+    )
   }
 }
 
@@ -229,21 +429,23 @@ async function pass() {
   const state = loadState(ROOT)
   state.providers ??= {}
   const candidates = []
+  const known = await knownKeys(ROOT)
 
   for (const [name, fn] of [
     ['workspace', ingestRunDocs],
     ['claude', ingestClaude],
+    ['claude-orchestrator', ingestClaudeOrchestrator],
+    ['codex-runtime', ingestCodexRuntime],
     ['codex', ingestCodex],
   ]) {
     try {
-      await fn(state, now, candidates)
+      await fn(state, now, candidates, known)
     } catch (e) {
       // Monitoring failure is never a feature failure.
       warn(`${name} source failed: ${e.message}`)
     }
   }
 
-  const known = await knownKeys(ROOT)
   const fresh = []
   const seen = new Set()
   for (const record of candidates) {

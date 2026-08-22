@@ -182,15 +182,48 @@ Sources, in descending attribution quality:
 | # | source | role comes from | attribution |
 |---|---|---|---|
 | 1 | `_workspace/{slug}/usage.json` | the orchestrator's own `--role`/`--round` | `harness` |
+| 1b | `_workspace/{slug}/runtime/codex-{role}-r{n}.jsonl` | the file name the orchestrator chose when it ran that invocation | `harness` |
 | 2 | Claude subagent transcripts for this project dir | sibling `agent-*.meta.json` `agentType` | `auto` |
+| 2b | the Claude **main session** transcript, read incrementally | it is the orchestrator by definition | `auto` |
 | 3 | Codex rollout JSONL whose `session_meta.cwd` is this project | not recorded by Codex, so `unknown` | `auto` |
+
+### Claude orchestrator (automatic)
+
+The main session transcript is append-only and outlives a run, so the monitor
+reads it **from a stored byte offset**: each pass records only what was appended
+since the last one, as one `orchestrator` record with `measurementMode:
+"run_delta"`. It never records the session-cumulative total. Sidechain lines are
+excluded, `message.id` repeats collapse with the largest output kept, and a
+message split across two passes contributes only its growth. The offset lives in
+`monitor-state.json`, and if that file is lost it is recovered from the byte
+range already encoded in the history, so a restart adds nothing.
+
+`harness:usage:start` / `harness:usage:end` are therefore **not needed in normal
+use**. They remain as a debugging fallback: run the monitor with
+`--no-orchestrator` to ingest those manual deltas instead. Do not use both — they
+measure the same tokens.
+
+### Codex roles (automatic)
+
+Run each Codex role into the name the Harness already documents:
+
+```
+mkdir -p _workspace/<slug>/runtime
+codex exec --json <role-prompt> > _workspace/<slug>/runtime/codex-<role>-r<n>.jsonl
+```
+
+`<role>` is `planner`, `implementer` or `reviewer`. The monitor takes role, round
+and run from that file name — metadata fixed at invocation time — and no manual
+`harness:usage:collect` call is needed. The parser is unchanged:
+`turn.completed.usage` first, `last_token_usage` as the fallback, cumulative
+`total_token_usage` never summed. A file whose name encodes no known role is
+skipped, never guessed, and a `~/.codex` rollout for the same thread id collapses
+onto the named record. Existing `role: "unknown"` history is left as it is.
 
 Role is never inferred from transcript *content*. A Codex rollout the Harness
 did not label is stored as `role: "unknown"` rather than forced into a role.
 
-The monitor never rescans a Claude **main session** transcript, so orchestrator
-usage stays the run-boundary delta produced by `harness:usage:start/end` and can
-never regress to a session-cumulative figure.
+Role is never inferred from transcript content, by search or by a model.
 
 Performance and safety:
 
@@ -225,7 +258,8 @@ anything reaches the portfolio directory.
 ## Reading the history
 
 ```
-npm run harness:usage                     # the latest single run (unchanged)
+npm run harness:usage                     # provider x role over the history
+npm run harness:usage -- --run <slug>     # the single run document
 npm run harness:usage -- --detail         # per-field breakdown
 npm run harness:usage -- --days 7         # period report over the history
 npm run harness:usage -- --days 30 --detail

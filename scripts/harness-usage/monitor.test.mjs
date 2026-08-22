@@ -3,7 +3,7 @@
 // network call is made: running this suite costs 0 AI calls.
 
 import { spawnSync } from 'node:child_process'
-import { mkdtempSync, mkdirSync, readFileSync, appendFileSync, writeFileSync, existsSync, rmSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, readFileSync, appendFileSync, writeFileSync, existsSync, realpathSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import test from 'node:test'
@@ -183,7 +183,7 @@ test('monitor survives a malformed run document without failing', () => {
   rmSync(root, { recursive: true, force: true })
 })
 
-test('orchestrator run_delta is preserved, never a session cumulative', async () => {
+test('a manual orchestrator delta is skipped by default and kept in fallback mode', async () => {
   const root = sandbox()
   const doc = sampleDoc('run-delta')
   doc.agents.push({
@@ -200,12 +200,22 @@ test('orchestrator run_delta is preserved, never a session cumulative', async ()
     sourceId: 'session-1#run',
   })
   runDoc(root, 'run-delta', doc)
+
+  // Claude orchestrator usage is now collected automatically from the main
+  // session, so ingesting the manual harness:usage:start/end delta as well
+  // would count the same tokens twice.
   node(MONITOR, ['--once', '--quiet', '0'], root)
-  const { records } = await readHistory({ root })
-  const orchestrator = records.find((r) => r.role === 'orchestrator')
+  assert.equal((await readHistory({ root })).records.some((r) => r.role === 'orchestrator'), false)
+
+  // With auto collection switched off, the manual delta is the source again.
+  const fallback = sandbox()
+  runDoc(fallback, 'run-delta', doc)
+  node(MONITOR, ['--once', '--quiet', '0', '--no-orchestrator'], fallback)
+  const orchestrator = (await readHistory({ root: fallback })).records.find((r) => r.role === 'orchestrator')
   assert.equal(orchestrator.measurementMode, 'run_delta')
   assert.equal(orchestrator.processedTokens, 3300)
   rmSync(root, { recursive: true, force: true })
+  rmSync(fallback, { recursive: true, force: true })
 })
 
 test('period report aggregates by provider, role, lane and harness version', () => {
@@ -213,9 +223,13 @@ test('period report aggregates by provider, role, lane and harness version', () 
   runDoc(root, 'run-one', sampleDoc('run-one'))
   node(MONITOR, ['--once', '--quiet', '0'], root)
   const out = node(REPORT, ['--days', '7'], root)
-  for (const section of ['BY PROVIDER', 'BY ROLE', 'BY LANE', 'BY HARNESS VERSION', 'PER RUN']) {
+  for (const section of ['CLAUDE', 'CODEX', 'BY LANE', 'BY HARNESS VERSION', 'PER RUN']) {
     assert.match(out, new RegExp(section))
   }
+  // Each provider keeps the single-run report's columns.
+  assert.match(out, /Role\s+n\s+Output\s+Cache Read\s+Processed Share/)
+  assert.match(out, /planner/)
+  assert.match(out, /implementer/)
   assert.match(out, /1\.2\.0/)
   assert.match(out, /!= billing cost/)
   // An older-than-window record is excluded.
@@ -311,5 +325,215 @@ test('run metadata is read from harness artifacts, and stays null when unreadabl
   assert.equal(meta.quality.lintPassed, true, 'gates come from the final round')
   assert.equal(harnessVersion(root), '1.2.0')
   assert.ok(existsSync(path.join(root, '.harness', 'VERSION')))
+  rmSync(root, { recursive: true, force: true })
+})
+
+// ---------------------------------------------------------------------------
+// v1.1.1: Claude orchestrator auto-collection and Codex role attribution.
+// Both run entirely on synthetic fixtures; no agent is ever spawned.
+
+const assistant = (id, usage, extra = {}) =>
+  JSON.stringify({
+    type: 'assistant',
+    timestamp: '2026-08-22T01:00:00.000Z',
+    message: { id, model: 'claude-opus-5', usage },
+    ...extra,
+  })
+
+const usageFields = (input, output, cacheRead = 0, cacheCreate = 0) => ({
+  input_tokens: input,
+  output_tokens: output,
+  cache_read_input_tokens: cacheRead,
+  cache_creation_input_tokens: cacheCreate,
+})
+
+/** A sandbox whose HOME holds a Claude project dir for `root`. */
+function claudeHome(root) {
+  const home = mkdtempSync(path.join(tmpdir(), 'harness-home-'))
+  // The child resolves symlinks in its cwd (on macOS /var -> /private/var), and
+  // the project dir is keyed by that resolved path.
+  const dir = path.join(home, '.claude', 'projects', realpathSync(root).replace(/[^a-zA-Z0-9]/g, '-'))
+  mkdirSync(dir, { recursive: true })
+  return { home, dir }
+}
+
+function monitorWithHome(root, home, extra = []) {
+  const result = spawnSync(process.execPath, [MONITOR, '--once', '--quiet', '0', ...extra], {
+    cwd: root,
+    encoding: 'utf8',
+    env: { ...process.env, HOME: home },
+  })
+  assert.equal(result.status, 0, result.stderr)
+  return `${result.stdout}${result.stderr}`
+}
+
+test('claude orchestrator usage is collected automatically and incrementally', async () => {
+  const root = sandbox()
+  const { home, dir } = claudeHome(root)
+  const transcript = path.join(dir, 'session-a.jsonl')
+
+  writeFileSync(
+    transcript,
+    [
+      assistant('msg-1', usageFields(100, 10, 500, 20)),
+      // Same message.id streamed again: constants repeat, output grows.
+      assistant('msg-1', usageFields(100, 40, 500, 20)),
+      // A sidechain line is subagent usage and must not inflate the orchestrator.
+      assistant('sub-1', usageFields(9999, 9999), { isSidechain: true }),
+    ].join('\n') + '\n',
+  )
+
+  monitorWithHome(root, home)
+  let { records } = await readHistory({ root })
+  const first = records.filter((r) => r.role === 'orchestrator')
+  assert.equal(first.length, 1, 'one record for the new usage')
+  assert.equal(first[0].provider, 'claude')
+  assert.equal(first[0].inputTokens, 100, 'message.id counted once')
+  assert.equal(first[0].outputTokens, 40, 'largest output for the message')
+  assert.equal(first[0].cacheReadTokens, 500)
+  assert.equal(first[0].cacheWriteTokens, 20)
+  assert.equal(first[0].measurementMode, 'run_delta', 'never a session cumulative')
+
+  // Nothing new: no second record.
+  monitorWithHome(root, home)
+  assert.equal((await readHistory({ root })).records.filter((r) => r.role === 'orchestrator').length, 1)
+
+  // New turn appended: only the increment is recorded.
+  appendFileSync(transcript, assistant('msg-2', usageFields(7, 3)) + '\n')
+  monitorWithHome(root, home)
+  records = (await readHistory({ root })).records.filter((r) => r.role === 'orchestrator')
+  assert.equal(records.length, 2)
+  const increment = records.find((r) => r.inputTokens === 7)
+  assert.ok(increment, 'the second slice is the new turn only')
+  assert.equal(increment.outputTokens, 3)
+  assert.equal(
+    records.reduce((a, r) => a + r.processedTokens, 0),
+    100 + 40 + 500 + 20 + 7 + 3,
+    'slices sum to the session total, counted once',
+  )
+
+  // Restart with the cursor lost: the offset is recovered from the history.
+  rmSync(path.join(root, '.harness', 'metrics', 'raw', 'monitor-state.json'))
+  monitorWithHome(root, home)
+  assert.equal((await readHistory({ root })).records.filter((r) => r.role === 'orchestrator').length, 2)
+
+  rmSync(root, { recursive: true, force: true })
+  rmSync(home, { recursive: true, force: true })
+})
+
+test('a message split across two passes contributes only its growth', async () => {
+  const root = sandbox()
+  const { home, dir } = claudeHome(root)
+  const transcript = path.join(dir, 'session-b.jsonl')
+  writeFileSync(transcript, assistant('msg-1', usageFields(100, 10, 0, 0)) + '\n')
+  monitorWithHome(root, home)
+  appendFileSync(transcript, assistant('msg-1', usageFields(100, 55, 0, 0)) + '\n')
+  monitorWithHome(root, home)
+
+  const records = (await readHistory({ root })).records.filter((r) => r.role === 'orchestrator')
+  assert.equal(
+    records.reduce((a, r) => a + r.inputTokens, 0),
+    100,
+    'the repeated input is not counted twice',
+  )
+  assert.equal(
+    records.reduce((a, r) => a + r.outputTokens, 0),
+    55,
+    'only the output growth is added',
+  )
+  rmSync(root, { recursive: true, force: true })
+  rmSync(home, { recursive: true, force: true })
+})
+
+test('claude subagent roles are unaffected by orchestrator collection', async () => {
+  const root = sandbox()
+  const { home, dir } = claudeHome(root)
+  const subagents = path.join(dir, 'session-c', 'subagents')
+  mkdirSync(subagents, { recursive: true })
+  writeFileSync(path.join(dir, 'session-c.jsonl'), assistant('main-1', usageFields(5, 5)) + '\n')
+  writeFileSync(path.join(subagents, 'agent-p1.jsonl'), assistant('p-1', usageFields(11, 22, 33, 44)) + '\n')
+  writeFileSync(path.join(subagents, 'agent-p1.meta.json'), JSON.stringify({ agentType: 'planner' }))
+
+  monitorWithHome(root, home)
+  const { records } = await readHistory({ root })
+  const planner = records.find((r) => r.role === 'planner')
+  assert.equal(planner.inputTokens, 11)
+  assert.equal(planner.outputTokens, 22)
+  assert.equal(planner.cacheReadTokens, 33)
+  assert.equal(planner.cacheWriteTokens, 44)
+  assert.equal(records.filter((r) => r.role === 'orchestrator').length, 1)
+  rmSync(root, { recursive: true, force: true })
+  rmSync(home, { recursive: true, force: true })
+})
+
+const codexTurn = (thread, usage) =>
+  [
+    JSON.stringify({ type: 'thread.started', thread_id: thread, timestamp: '2026-08-22T01:00:00.000Z' }),
+    JSON.stringify({ type: 'turn_context', payload: { model: 'gpt-5-codex' } }),
+    JSON.stringify({
+      type: 'turn.completed',
+      timestamp: '2026-08-22T01:01:00.000Z',
+      usage: {
+        input_tokens: usage[0],
+        cached_input_tokens: usage[1],
+        cache_write_input_tokens: 0,
+        output_tokens: usage[2],
+        reasoning_output_tokens: usage[3] ?? 0,
+        // Cumulative; must never be summed.
+        total_tokens: 999999,
+      },
+    }),
+  ].join('\n') + '\n'
+
+test('codex invocations are recorded under their Harness role, never unknown', async () => {
+  const root = sandbox()
+  const runtime = path.join(root, '_workspace', 'run-codex', 'runtime')
+  mkdirSync(runtime, { recursive: true })
+  writeFileSync(path.join(runtime, 'codex-planner-r1.jsonl'), codexTurn('thread-plan', [100, 60, 20]))
+  writeFileSync(path.join(runtime, 'codex-implementer-r1.jsonl'), codexTurn('thread-impl', [200, 120, 40]))
+  writeFileSync(path.join(runtime, 'codex-reviewer-r2.jsonl'), codexTurn('thread-rev', [300, 180, 60]))
+  // A name that encodes no known role is skipped rather than guessed.
+  writeFileSync(path.join(runtime, 'codex-something.jsonl'), codexTurn('thread-x', [1, 1, 1]))
+
+  node(MONITOR, ['--once', '--quiet', '0'], root)
+  const { records } = await readHistory({ root })
+  const byRole = Object.fromEntries(records.map((r) => [r.role, r]))
+
+  assert.equal(byRole.planner.provider, 'codex')
+  assert.equal(byRole.planner.runId, 'run-codex')
+  assert.equal(byRole.planner.round, 1)
+  assert.equal(byRole.planner.sourceId, 'thread-plan')
+  assert.equal(byRole.planner.model, 'gpt-5-codex')
+  // input is fresh input after cache is separated: 100 - 60 - 0.
+  assert.equal(byRole.planner.inputTokens, 40)
+  assert.equal(byRole.planner.cacheReadTokens, 60)
+  assert.equal(byRole.planner.outputTokens, 20)
+  assert.equal(byRole.planner.processedTokens, 120, 'cumulative total_tokens is not used')
+  assert.equal(byRole.implementer.role, 'implementer')
+  assert.equal(byRole.reviewer.round, 2, 'round comes from the file name')
+  assert.ok(!byRole.unknown, 'no invocation falls back to unknown')
+  assert.equal(records.length, 3)
+  rmSync(root, { recursive: true, force: true })
+})
+
+test('an earlier unknown codex record is superseded, and other history is kept', async () => {
+  const root = sandbox()
+  // Historic data written before role attribution existed.
+  appendRecords(
+    [
+      toHistoryRecord({ provider: 'codex', role: 'unknown', sourceId: 'thread-plan', outputTokens: 20 }, { attribution: 'auto' }),
+      toHistoryRecord({ provider: 'codex', role: 'unknown', sourceId: 'thread-old', outputTokens: 5 }, { attribution: 'auto' }),
+    ],
+    root,
+  )
+  const runtime = path.join(root, '_workspace', 'run-codex', 'runtime')
+  mkdirSync(runtime, { recursive: true })
+  writeFileSync(path.join(runtime, 'codex-planner-r1.jsonl'), codexTurn('thread-plan', [100, 60, 20]))
+
+  node(MONITOR, ['--once', '--quiet', '0'], root)
+  const { records } = await readHistory({ root })
+  assert.equal(records.length, 2, 'the same thread collapses onto one record')
+  assert.equal(records.find((r) => r.sourceId === 'thread-plan').role, 'planner')
+  assert.equal(records.find((r) => r.sourceId === 'thread-old').role, 'unknown', 'old data is left alone')
   rmSync(root, { recursive: true, force: true })
 })

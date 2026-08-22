@@ -43,6 +43,18 @@ export function newestSessionId(dir) {
   return files.length ? files[0].id : null
 }
 
+/** Main session transcripts for this project directory (no subagent files). */
+export function listMainSessions(cwd) {
+  const dir = projectDir(cwd)
+  if (!existsSync(dir)) return []
+  return readdirSync(dir)
+    .filter((f) => f.endsWith('.jsonl'))
+    .map((f) => ({
+      sessionId: f.slice(0, -'.jsonl'.length),
+      transcript: path.join(dir, f),
+    }))
+}
+
 // Claude agentType values come from .claude/agents/*; they already use the
 // canonical Harness role names. Anything else is mapped explicitly or rejected.
 const ROLE_BY_AGENT_TYPE = {
@@ -83,19 +95,32 @@ export function listSubagents(sessionDir) {
 // transcript is never held in memory and never leaves this process.
 // This is the single normalization path: per-invocation collection and
 // orchestrator snapshots both go through it.
-export async function scanUsage(file, { mainSessionOnly = false } = {}) {
+export async function scanUsage(file, { mainSessionOnly = false, start = 0 } = {}) {
   const byMessage = new Map()
   let model = null
   let firstTs = null
   let lastTs = null
   let malformed = 0
 
+  // `start` reads only what was appended since the last pass. The transcript is
+  // append-only, so a byte offset is a valid resume point; if the file is now
+  // shorter it was rotated or replaced and the scan restarts from the top.
+  const size = statSync(file).size
+  let offset = start > 0 && start <= size ? start : 0
+  const from = offset
+
   const rl = createInterface({
-    input: createReadStream(file, { encoding: 'utf8' }),
+    input: createReadStream(file, { encoding: 'utf8', start: from }),
     crlfDelay: Infinity,
   })
 
   for await (const line of rl) {
+    // Advance the offset only past lines that are terminated in the file. A
+    // trailing partial line belongs to a response still being written; it is
+    // left unconsumed so the next pass reads it whole.
+    const bytes = Buffer.byteLength(line, 'utf8')
+    if (offset + bytes + 1 > size) break
+    offset += bytes + 1
     if (!line || line.charCodeAt(0) !== 123 /* { */) continue
     if (!line.includes('"assistant"')) continue
     let ev
@@ -146,7 +171,17 @@ export async function scanUsage(file, { mainSessionOnly = false } = {}) {
     totals.cacheReadTokens += m.cacheRead
     totals.cacheCreationTokens += m.cacheCreation
   }
-  return { totals, model, firstTs, lastTs, messages: byMessage.size, malformed }
+  return {
+    totals,
+    model,
+    firstTs,
+    lastTs,
+    messages: byMessage.size,
+    malformed,
+    byMessage,
+    fromOffset: from,
+    endOffset: offset,
+  }
 }
 
 /**

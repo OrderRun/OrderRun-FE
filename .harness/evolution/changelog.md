@@ -14,6 +14,7 @@
 | 2026-08-21 | Defined the closed Conventional Commit format, Korean summary policy, and allowed types | `rules/git.md`, `evolution/learnings.md` | remove ambiguity from human and AI commit messages |
 | 2026-08-21 | Separated `dev` to `main` PR creation from merge authority and required diff-derived change contents | `rules/git.md`, `evolution/learnings.md` | protect the deployment boundary and make promotion PRs reviewable |
 | 2026-08-22 | v1.1.0 token efficiency: default lightweight routing 강화, progressive context loading 강화, orchestrator 책임 축소, agent result summary 제한 | `VERSION`, `root.md`, `roles/*`, `workflows/lightweight.md` | v1.0.0 계측 결과를 기준선으로 두고 검증 품질 유지 상태에서 토큰 사용량을 줄이기 위해 |
+| 2026-08-22 | v1.1.1 monitoring attribution: Claude orchestrator usage 자동 수집, Codex agent role attribution 추가 | `VERSION`, `monitoring/README.md`, `scripts/harness-usage/` | orchestrator가 수동 start/end에, Codex role이 `unknown`에 묶여 있어 계측이 비어 있었기 때문 |
 
 ## Migration coverage
 
