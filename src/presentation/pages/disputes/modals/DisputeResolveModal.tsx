@@ -105,15 +105,9 @@ function DisputeResolveModalContent({
                   {target.label} #{target.id}
                 </span>
                 <span className="or-transition">
-                  <StatusBadge
-                    label={target.currentStatus}
-                    shape={target.label === '미션' ? 'pill' : 'square'}
-                  />
+                  <StatusBadge label={target.currentStatus} />
                   <span className="or-transition-arrow">→</span>
-                  <StatusBadge
-                    label={nextStatusOf(outcome)}
-                    shape={target.label === '미션' ? 'pill' : 'square'}
-                  />
+                  <StatusBadge label={nextStatusOf(outcome)} />
                 </span>
               </div>
             ))}

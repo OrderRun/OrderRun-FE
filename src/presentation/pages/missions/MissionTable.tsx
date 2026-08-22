@@ -63,7 +63,7 @@ export function MissionTable({
           header: '미션 상태',
           width: '90px',
           render: (mission) => (
-            <StatusBadge label={mission.status} shape="pill" />
+            <StatusBadge label={mission.status} />
           ),
         },
         {

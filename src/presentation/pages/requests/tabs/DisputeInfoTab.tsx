@@ -133,7 +133,7 @@ export function DisputeInfoTab({
                 <br />
                 <span className="or-related-id">미션 #{dispute.missionId}</span>
               </span>
-              <StatusBadge label={missionStatus} shape="pill" />
+              <StatusBadge label={missionStatus} />
             </div>
           </div>
         </div>

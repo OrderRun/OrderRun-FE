@@ -73,7 +73,7 @@ export function MissionInfoTab({
           { label: '미션 ID', value: mission.missionId },
           {
             label: '상태',
-            value: <StatusBadge label={mission.status} shape="pill" />,
+            value: <StatusBadge label={mission.status} />,
           },
           { label: '행님', value: mission.hyungnimName },
           { label: '꼬붕', value: mission.kkobungName },
