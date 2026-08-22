@@ -18,7 +18,7 @@
 // MONITORING WARNING recorded on the run document; the process exits 0 so the
 // feature workflow is never blocked by monitoring.
 //
-//   node scripts/harness-usage/run-boundary.mjs start --run <slug> [--lane A|B|C] [--session <id>]
+//   node scripts/harness-usage/run-boundary.mjs start --run <slug> [--lane A|B|C] [--layer presentation|domain|data|multi] [--session <id>]
 //   node scripts/harness-usage/run-boundary.mjs end   --run <slug> [--session <id>]
 
 import * as claude from './providers/claude.mjs'
@@ -160,6 +160,7 @@ async function main() {
     doc = loadUsage(file, { run: args.run, provider: providerName })
     // Declared once at run start, it labels every record of the run.
     if (['A', 'B', 'C'].includes(args.lane)) doc.lane = args.lane
+    if (['presentation', 'domain', 'data', 'multi'].includes(args.layer)) doc.layer = args.layer
 
     if (phase === 'start') await start(args, doc, adapter)
     else await end(args, doc, adapter)

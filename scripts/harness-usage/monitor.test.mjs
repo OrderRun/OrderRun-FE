@@ -10,6 +10,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { toHistoryRecord, recordKey } from './lib/schema.mjs'
 import { appendRecords, readHistory, historyPath } from './lib/history.mjs'
+import { runTotals } from './lib/aggregate.mjs'
 import { runMeta, harnessVersion } from './lib/runmeta.mjs'
 
 const HERE = path.dirname(new URL(import.meta.url).pathname)
@@ -535,5 +536,107 @@ test('an earlier unknown codex record is superseded, and other history is kept',
   assert.equal(records.length, 2, 'the same thread collapses onto one record')
   assert.equal(records.find((r) => r.sourceId === 'thread-plan').role, 'planner')
   assert.equal(records.find((r) => r.sourceId === 'thread-old').role, 'unknown', 'old data is left alone')
+  rmSync(root, { recursive: true, force: true })
+})
+
+// ---------------------------------------------------------------------------
+// v1.1.2: layer attribution and run-level version x layer x lane comparison.
+
+const layeredRun = (root, slug, { layer, lane, agents }) =>
+  runDoc(root, slug, {
+    run: slug,
+    provider: 'claude',
+    lane,
+    layer,
+    agents: agents.map(([role, out, cacheRead], i) => ({
+      provider: i % 2 ? 'codex' : 'claude',
+      invocationId: `${role}-r1`,
+      role,
+      round: 1,
+      inputTokens: 10,
+      cachedInputTokens: cacheRead,
+      cacheWriteInputTokens: 0,
+      outputTokens: out,
+      processedTokens: 10 + cacheRead + out,
+      sourceId: `${slug}-${role}`,
+    })),
+  })
+
+test('each run records the layer the Harness already selected', async () => {
+  const root = sandbox()
+  layeredRun(root, 'ui-tweak', { layer: 'presentation', lane: 'A', agents: [['implementer', 100, 1000], ['reviewer', 50, 500]] })
+  layeredRun(root, 'rule-change', { layer: 'domain', lane: 'B', agents: [['planner', 20, 200], ['implementer', 200, 2000]] })
+  layeredRun(root, 'dto-change', { layer: 'data', lane: 'B', agents: [['implementer', 300, 3000]] })
+  layeredRun(root, 'big-refactor', { layer: 'multi', lane: 'C', agents: [['implementer', 400, 4000]] })
+
+  node(MONITOR, ['--once', '--quiet', '0'], root)
+  const { records } = await readHistory({ root })
+  const layerOf = (slug) => records.find((r) => r.runId === slug).layer
+  assert.equal(layerOf('ui-tweak'), 'presentation')
+  assert.equal(layerOf('rule-change'), 'domain')
+  assert.equal(layerOf('dto-change'), 'data')
+  assert.equal(layerOf('big-refactor'), 'multi')
+  // Every record of a run carries that run's layer, whichever provider it is.
+  assert.ok(records.filter((r) => r.runId === 'ui-tweak').every((r) => r.layer === 'presentation'))
+  rmSync(root, { recursive: true, force: true })
+})
+
+test('an unstated layer is unknown, never guessed', async () => {
+  const root = sandbox()
+  runDoc(root, 'no-layer', sampleDoc('no-layer'))
+  node(MONITOR, ['--once', '--quiet', '0'], root)
+  const { records } = await readHistory({ root })
+  assert.ok(records.every((r) => r.layer === 'unknown'))
+  rmSync(root, { recursive: true, force: true })
+})
+
+test('layer is read from the run artifact when it is not declared', () => {
+  const root = sandbox()
+  runDoc(root, 'from-review', { run: 'from-review', agents: [] }, {
+    review: '# review_r1 — abc123 (Lane B, Context: presentation)\n\nGates: typecheck 0 / lint 0 / build 0.\n판정: PASS\n',
+  })
+  assert.equal(runMeta('from-review', root).layer, 'presentation')
+  assert.equal(runMeta('from-review', root).layerSource, 'artifact')
+
+  runDoc(root, 'two-contexts', { run: 'two-contexts', agents: [] }, {
+    review: '# review_r1 — abc123 (Lane C, Context: presentation, data)\n\nGates: typecheck 0 / lint 0 / build 0.\n판정: PASS\n',
+  })
+  assert.equal(runMeta('two-contexts', root).layer, 'multi', 'two layers is multi')
+  rmSync(root, { recursive: true, force: true })
+})
+
+test('run totals sum every role of a run before averaging', async () => {
+  const root = sandbox()
+  layeredRun(root, 'run-a', { layer: 'presentation', lane: 'A', agents: [['planner', 100, 1000], ['implementer', 200, 2000], ['reviewer', 300, 3000], ['orchestrator', 400, 4000]] })
+  node(MONITOR, ['--once', '--quiet', '0'], root)
+  const { records } = await readHistory({ root })
+  const runs = runTotals(records)
+  assert.equal(runs.length, 1)
+  assert.equal(runs[0].outputTokens, 1000, 'all four roles summed into one run')
+  assert.equal(runs[0].cacheReadTokens, 10000)
+  assert.equal(runs[0].layer, 'presentation')
+  assert.equal(runs[0].lane, 'A')
+  rmSync(root, { recursive: true, force: true })
+})
+
+test('version x layer x lane averages keep different layers apart', () => {
+  const root = sandbox()
+  // Two presentation/Lane A runs and one domain/Lane B run, same version.
+  layeredRun(root, 'ui-1', { layer: 'presentation', lane: 'A', agents: [['implementer', 100, 1000]] })
+  layeredRun(root, 'ui-2', { layer: 'presentation', lane: 'A', agents: [['implementer', 300, 3000]] })
+  layeredRun(root, 'domain-1', { layer: 'domain', lane: 'B', agents: [['implementer', 999, 9000]] })
+  node(MONITOR, ['--once', '--quiet', '0'], root)
+
+  const out = node(REPORT, ['--history'], root)
+  assert.match(out, /BY HARNESS VERSION x LAYER x LANE \(run averages\)/)
+  const rows = out.split('\n').filter((line) => /^1\.2\.0\s/.test(line))
+  const presentation = rows.find((line) => line.includes('presentation'))
+  const domain = rows.find((line) => line.includes('domain'))
+  // Presentation Lane A: 2 runs, average output (100 + 300) / 2 = 200.
+  assert.match(presentation, /presentation\s+A\s+2\s+200\s/)
+  // The domain run is averaged on its own, not mixed in.
+  assert.match(domain, /domain\s+B\s+1\s+999\s/)
+  // The existing role tables are untouched.
+  assert.match(out, /Role\s+n\s+Output\s+Cache Read\s+Processed Share/)
   rmSync(root, { recursive: true, force: true })
 })

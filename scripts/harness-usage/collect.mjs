@@ -8,7 +8,7 @@
 //
 //   node scripts/harness-usage/collect.mjs --run <slug> --role <role> --round <n>
 //        [--agent-id <id>] [--session <id>] [--transcript <file>]
-//        [--provider claude|codex] [--lane A|B|C] [--strict]
+//        [--provider claude|codex] [--lane A|B|C] [--layer presentation|domain|data|multi] [--strict]
 //
 // Claude orchestrator usage uses run-boundary.mjs. A Codex orchestrator is an
 // explicit exec invocation and is collected from its own --transcript file.
@@ -49,6 +49,7 @@ async function main() {
     // A declared Lane is the only trustworthy one; without it the monitor falls
     // back to what the run's own artifacts show.
     if (['A', 'B', 'C'].includes(args.lane)) doc.lane = args.lane
+    if (['presentation', 'domain', 'data', 'multi'].includes(args.layer)) doc.layer = args.layer
     const invocationId = `${role}-r${round}`
 
     // Source ids already charged to a *different* invocation are off limits, so

@@ -14,6 +14,8 @@ export const HISTORY_SCHEMA_VERSION = 1
 
 export const ROLES = ['planner', 'implementer', 'reviewer', 'orchestrator', 'unknown']
 export const LANES = ['A', 'B', 'C', null]
+// Architecture layer the run actually touched. `multi` means two or more.
+export const LAYERS = ['presentation', 'domain', 'data', 'multi', 'unknown']
 
 export const TOKEN_FIELDS = [
   'inputTokens',
@@ -31,6 +33,7 @@ export const COMMON_FIELDS = [
   'runId',
   'role',
   'lane',
+  'layer',
   'round',
   'model',
   'status',
@@ -91,6 +94,9 @@ export function toHistoryRecord(raw, context = {}) {
     role,
     lane,
     laneSource: lane ? (context.laneSource ?? 'declared') : null,
+    // The layer the Harness already selected for this run. Never inferred from
+    // transcript content; unresolved stays 'unknown'.
+    layer: LAYERS.includes(context.layer) ? context.layer : 'unknown',
     round: Number.isInteger(raw.round) && raw.round > 0 ? raw.round : 1,
     model: nullable(raw.model) ?? null,
     status: raw.status ?? context.status ?? 'unknown',

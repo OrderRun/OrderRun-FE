@@ -54,6 +54,36 @@ export function qualityByRun(records) {
   return runs
 }
 
+/**
+ * Collapse invocations into one row per run: planner + implementer + reviewer +
+ * orchestrator of the same runId are summed first. Records with no runId are
+ * left out — they belong to no run and would distort a per-run average.
+ */
+export function runTotals(records) {
+  const runs = new Map()
+  for (const record of records) {
+    if (!record.runId) continue
+    if (!runs.has(record.runId)) {
+      runs.set(record.runId, {
+        runId: record.runId,
+        harnessVersion: record.harnessVersion ?? 'unrecorded',
+        layer: record.layer ?? 'unknown',
+        lane: record.lane ?? 'unrecorded',
+        quality: record.quality ?? null,
+        ...Object.fromEntries(TOKEN.map((f) => [f, 0])),
+      })
+    }
+    const run = runs.get(record.runId)
+    for (const f of TOKEN) run[f] += Number(record[f] ?? 0)
+    // A run's layer/lane/quality come from the run's own metadata; the first
+    // record that carries one wins and the rest agree by construction.
+    if (run.layer === 'unknown' && record.layer) run.layer = record.layer
+    if (run.lane === 'unrecorded' && record.lane) run.lane = record.lane
+    if (!run.quality && record.quality) run.quality = record.quality
+  }
+  return [...runs.values()]
+}
+
 export function rate(values) {
   const sample = values.filter((v) => v === true || v === false)
   if (!sample.length) return { rate: null, n: 0 }

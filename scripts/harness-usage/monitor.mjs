@@ -115,6 +115,7 @@ async function ingestRunDocs(state, now, out) {
             harnessVersion: harnessVersion(ROOT),
             lane: meta.lane,
             laneSource: meta.laneSource,
+            layer: meta.layer,
             quality: meta.quality,
             attribution: 'harness',
           },
@@ -224,6 +225,29 @@ function offsetFromHistory(known, sessionId) {
   return max
 }
 
+/**
+ * The run a main-session slice belongs to, or null.
+ *
+ * A slice is orchestrator work between two transcript timestamps; the run it
+ * drove is the one whose `_workspace/{slug}` directory was written inside that
+ * window. This is a file-mtime fact, not an inference from transcript content.
+ * If no run or more than one run matches, the slice stays unattributed rather
+ * than being assigned to a guess.
+ */
+function runForSlice(firstTs, lastTs) {
+  if (!firstTs || !lastTs) return null
+  const from = Date.parse(firstTs)
+  const to = Date.parse(lastTs)
+  if (!Number.isFinite(from) || !Number.isFinite(to)) return null
+  const ws = path.join(ROOT, '_workspace')
+  if (!existsSync(ws)) return null
+  const matches = readdirSync(ws).filter((slug) => {
+    const stat = safeStat(path.join(ws, slug))
+    return stat && stat.mtimeMs >= from && stat.mtimeMs <= to
+  })
+  return matches.length === 1 ? matches[0] : null
+}
+
 async function ingestClaudeOrchestrator(state, now, out, known) {
   if (args['no-orchestrator']) return
   for (const { sessionId, transcript } of claude.listMainSessions(ROOT)) {
@@ -252,6 +276,18 @@ async function ingestClaudeOrchestrator(state, now, out, known) {
     }
     const processed = Object.values(totals).reduce((a, b) => a + b, 0)
     if (!processed) continue
+    // Same runId as the run's agent records, so run totals add up.
+    const runId = runForSlice(scan.firstTs, scan.lastTs)
+    const runMetaForSlice = runId ? runMeta(runId, ROOT) : null
+    const sliceRun = runId
+      ? {
+          runId,
+          lane: runMetaForSlice.lane,
+          laneSource: runMetaForSlice.laneSource,
+          layer: runMetaForSlice.layer,
+          quality: runMetaForSlice.quality,
+        }
+      : {}
     if (scan.malformed) debug(`claude orchestrator ${sessionId}: ${scan.malformed} unusable event(s) skipped`)
     out.push(
       toHistoryRecord(
@@ -271,7 +307,11 @@ async function ingestClaudeOrchestrator(state, now, out, known) {
           measurementMode: 'run_delta',
           status: 'completed',
         },
-        { harnessVersion: harnessVersion(ROOT), attribution: 'auto' },
+        {
+          harnessVersion: harnessVersion(ROOT),
+          attribution: 'auto',
+          ...sliceRun,
+        },
       ),
     )
   }
@@ -348,6 +388,7 @@ async function ingestCodexRuntime(state, now, out) {
           harnessVersion: harnessVersion(ROOT),
           lane: meta.lane,
           laneSource: meta.laneSource,
+          layer: meta.layer,
           quality: meta.quality,
           attribution: 'harness',
         },

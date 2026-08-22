@@ -26,6 +26,18 @@ function reviewFiles(runDir) {
 // line with one exit code per gate, followed by a verdict. Only these three
 // shapes are read; the prose body is never parsed and never inspected further.
 const LANE_RE = /Lane\s+([ABC])\b/
+// The Context selection the orchestrator or planner already made, as the run's
+// own artifacts record it: "(Lane B, Context: presentation, data)".
+const CONTEXT_RE = /Context:\s*([A-Za-z, ]+)/
+const LAYER_NAMES = ['presentation', 'domain', 'data']
+
+function layerFromText(text) {
+  const match = text.match(CONTEXT_RE)
+  if (!match) return null
+  const found = LAYER_NAMES.filter((name) => match[1].toLowerCase().includes(name))
+  if (!found.length) return null
+  return found.length > 1 ? 'multi' : found[0]
+}
 const VERDICT_RE = /\b(FIX_REQUIRED|PASS)\b/
 const gateRe = (name) => new RegExp(`${name}[^0-9\\n]{0,12}(\\d+)`, 'i')
 
@@ -52,6 +64,8 @@ export function runMeta(runSlug, root = process.cwd()) {
   const meta = {
     lane: null,
     laneSource: null,
+    layer: 'unknown',
+    layerSource: null,
     quality: {
       reviewerFirstPass: null,
       revisionRounds: null,
@@ -72,6 +86,10 @@ export function runMeta(runSlug, root = process.cwd()) {
         meta.lane = doc.lane
         meta.laneSource = 'declared'
       }
+      if ([...LAYER_NAMES, 'multi'].includes(doc.layer)) {
+        meta.layer = doc.layer
+        meta.layerSource = 'declared'
+      }
     } catch {
       /* handled by the caller's warning path */
     }
@@ -89,6 +107,13 @@ export function runMeta(runSlug, root = process.cwd()) {
         meta.laneSource = 'artifact'
       }
     }
+    if (meta.layer === 'unknown') {
+      const layer = layerFromText(first)
+      if (layer) {
+        meta.layer = layer
+        meta.layerSource = 'artifact'
+      }
+    }
     const firstVerdict = first.match(VERDICT_RE)
     if (firstVerdict) meta.quality.reviewerFirstPass = firstVerdict[1] === 'PASS'
     meta.quality.revisionRounds = reviews.length - 1
@@ -99,6 +124,18 @@ export function runMeta(runSlug, root = process.cwd()) {
     meta.quality.lintPassed = gate(last, 'lint')
     meta.quality.buildPassed = gate(last, 'build')
     meta.quality.testPassed = gate(last, 'test')
+  }
+
+  // The plan header carries the same Context selection when there is one.
+  if (meta.layer === 'unknown') {
+    const plan = path.join(runDir, 'plan.md')
+    if (existsSync(plan)) {
+      const layer = layerFromText(head(plan, 12))
+      if (layer) {
+        meta.layer = layer
+        meta.layerSource = 'artifact'
+      }
+    }
   }
 
   // Lane A runs no planner, so the absence of plan.md is real evidence — but it

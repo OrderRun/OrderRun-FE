@@ -2,7 +2,7 @@
 // Read-only aggregation of local JSONL; no AI call, no network.
 
 import { readHistory } from './lib/history.mjs'
-import { avg, groupBy, mean, perRun, qualityByRun, rate, sinceISO } from './lib/aggregate.mjs'
+import { avg, groupBy, mean, qualityByRun, rate, runTotals, sinceISO } from './lib/aggregate.mjs'
 import { fmt } from './store.mjs'
 
 const pad = (t, w, left = false) => (left ? String(t).padStart(w) : String(t).padEnd(w))
@@ -70,12 +70,40 @@ export async function historyReport(args) {
   }
   if (detail) table('BY PROVIDER (all fields)', groupBy(records, (r) => r.provider), { detail })
   table('BY LANE', groupBy(records, (r) => r.lane ?? 'unrecorded'), { detail })
-  table('BY HARNESS VERSION', groupBy(records, (r) => r.harnessVersion ?? 'unrecorded'), { detail })
+  table('BY LAYER', groupBy(records, (r) => r.layer ?? 'unknown'), { detail })
+  table('BY HARNESS VERSION (all invocations, reference only)', groupBy(records, (r) => r.harnessVersion ?? 'unrecorded'), { detail })
+
+  // The primary comparison: same version, same layer, same lane. Averages are
+  // per *run* (every role of that run summed first), because a Harness change is
+  // judged on what a whole run costs, and comparing across layers or lanes would
+  // compare different kinds of work.
+  const runs = runTotals(records)
+  if (runs.length) {
+    const buckets = groupBy(
+      runs.map((run) => ({ ...run, runId: run.runId })),
+      (run) => [run.harnessVersion, run.layer, run.lane].join('\u0000'),
+    )
+    console.log(`\nBY HARNESS VERSION x LAYER x LANE (run averages)`)
+    console.log(
+      pad('Harness', 10) + pad('Layer', 15) + pad('Lane', 12) +
+        ['Runs', 'Avg Output', 'Avg Cache Read', 'Avg Processed'].map((h, i) => pad(h, i === 0 ? 7 : 17, true)).join(''),
+    )
+    for (const [key, bucket] of [...buckets].sort()) {
+      const [version, layer, lane] = key.split('\u0000')
+      console.log(
+        pad(version, 10) + pad(layer, 15) + pad(lane, 12) +
+          pad(bucket.runs.size, 7, true) +
+          [avg(bucket, 'outputTokens'), avg(bucket, 'cacheReadTokens'), avg(bucket, 'processedTokens')]
+            .map((v) => pad(fmt(Math.round(v)), 17, true))
+            .join(''),
+      )
+    }
+  }
 
   // Per-run figures: the unit a Harness change is actually judged on.
-  const runs = groupBy(records, (r) => r.runId ?? null)
-  if (runs.size) {
-    const all = [...runs.values()].reduce(
+  const runBuckets = groupBy(records, (r) => r.runId ?? null)
+  if (runBuckets.size) {
+    const all = [...runBuckets.values()].reduce(
       (a, b) => {
         a.output += b.outputTokens
         a.cacheRead += b.cacheReadTokens
@@ -84,10 +112,11 @@ export async function historyReport(args) {
       },
       { output: 0, cacheRead: 0, processed: 0 },
     )
-    console.log(`\nPER RUN (n = ${runs.size} run(s) with a recorded run id)`)
-    console.log(`${pad('avg output', 22)}${pad(fmt(Math.round(all.output / runs.size)), 14, true)}`)
-    console.log(`${pad('avg cache read', 22)}${pad(fmt(Math.round(all.cacheRead / runs.size)), 14, true)}`)
-    console.log(`${pad('avg processed', 22)}${pad(fmt(Math.round(all.processed / runs.size)), 14, true)}`)
+    const n = runBuckets.size
+    console.log(`\nPER RUN — all runs (n = ${n} run(s) with a recorded run id)`)
+    console.log(`${pad('avg output', 22)}${pad(fmt(Math.round(all.output / n)), 14, true)}`)
+    console.log(`${pad('avg cache read', 22)}${pad(fmt(Math.round(all.cacheRead / n)), 14, true)}`)
+    console.log(`${pad('avg processed', 22)}${pad(fmt(Math.round(all.processed / n)), 14, true)}`)
   }
 
   const quality = [...qualityByRun(records).values()]

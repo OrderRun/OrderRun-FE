@@ -285,6 +285,31 @@ artifacts: `Lane X` in the `review_r1.md` header, else Lane A when the run has
 reviews but no `plan.md`. A lane it cannot establish stays `null`, and the
 record's `laneSource` says which of the three it was.
 
+## Layer
+
+Each run records the architecture layer it actually touched: `presentation`,
+`domain`, `data`, or `multi` (two or more). It is the Context selection the
+Harness already made — never a fresh judgement, never inferred from transcript
+content, never asked of a model. Sources, in order:
+
+1. `layer` in `_workspace/{slug}/usage.json`, declared with `--layer` on
+   `harness:usage:start` or `harness:usage:collect`;
+2. the `Context: …` part of the `review_r1.md` (or `plan.md`) header the run's
+   own artifacts already carry — two layers named there means `multi`.
+
+Unresolved stays `unknown`. Past records written before this existed keep
+whatever they had; they are not reclassified.
+
+## Comparing Harness versions
+
+`BY HARNESS VERSION x LAYER x LANE` in the report is the primary comparison. Its
+averages are **per run**: every role of a run (planner + implementer + reviewer +
+orchestrator) is summed into one run total first, then runs are grouped by
+version, layer and lane. Comparing a presentation Lane A run against a multi-layer
+Lane C run would compare different kinds of work, so like is compared with like.
+Runs with no `runId` are excluded from it. The plain per-version and per-role
+tables remain as reference.
+
 ## Quality metadata
 
 Read by script from artifacts the Harness already writes — no agent is asked
