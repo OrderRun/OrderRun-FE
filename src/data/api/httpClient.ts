@@ -9,9 +9,11 @@ export interface RequestConfig {
   body?: unknown
 }
 
-// AUTH_CONTRACT_UNCONFIRMED: no admin operation in docs/api-spec/openapi.json
-// declares `security`. `HTTPBearer` is the only scheme the spec defines
-// anywhere, so this is a generic optional injector, wired to nothing.
+// Every admin operation in docs/api-spec/openapi.json declares
+// `security: [{ HTTPBearer: [] }]` except `POST /v1/admin/auth/login`, which is
+// public. The provider is registered by the presentation layer that owns the
+// admin session; it returns `null` while signed out, so no header is attached
+// and the public login call is unaffected. This module never stores a token.
 type AuthTokenProvider = () => string | null | undefined
 
 let authTokenProvider: AuthTokenProvider | null = null

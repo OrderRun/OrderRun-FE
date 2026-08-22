@@ -1,14 +1,19 @@
 import { createContext, useContext } from 'react'
 
+/** 로그인 실패 원인. 문구 결정은 Presentation 화면이 한다. */
+export type SignInFailureReason = 'credentials' | 'network' | 'server'
+
+export type SignInResult = { ok: true } | { ok: false; reason: SignInFailureReason }
+
 /**
- * 관리자 세션의 유일한 교체 지점 계약이다. 실제 API가 붙으면 Provider 내부 구현만
- * data 계층 호출로 바꾸고 이 타입을 쓰는 화면들은 그대로 둔다.
+ * 관리자 세션 계약이다. 토큰은 Provider만 소유하며 이 계약으로 노출하지 않는다.
+ * 화면은 인증 여부와 표시 이름, 그리고 로그인/로그아웃 동작만 본다.
  */
 export interface AdminSessionValue {
   isAuthenticated: boolean
   adminName: string | null
-  /** 자격 증명이 맞으면 true. 데모 단계라 동기다. */
-  signIn: (username: string, password: string) => boolean
+  /** 실제 로그인 API를 호출한다. 예외를 던지지 않고 결과형으로 돌려준다. */
+  signIn: (username: string, password: string) => Promise<SignInResult>
   signOut: () => void
 }
 

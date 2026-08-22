@@ -2,11 +2,25 @@ import { requestEnvelope, requestRaw } from './httpClient'
 import type { PageResponse } from './apiEnvelope'
 import type { ProposalReportResponse } from './contracts/proposalReport'
 import type { ProposalResponse } from './contracts/proposal'
-import type { OfferResponse } from './contracts/offer'
+import type { AdminLoginRequest, AuthTokenResponse } from './contracts/adminAuth'
 import type { ProposalReportStatus } from '../../domain/status/proposalReportStatus'
 
-// The 6 server operations tagged `관리자` in docs/api-spec/openapi.json.
+// The server operations tagged `관리자` in docs/api-spec/openapi.json.
 // Every other endpoint belongs to the mobile app and is out of scope.
+
+/**
+ * `POST /v1/admin/auth/login` — the only admin operation the spec declares
+ * without `security`, so it is called without an `Authorization` header.
+ * Failures surface as `ApiError`: 401 `ADMIN_CREDENTIALS_INVALID`,
+ * 400 `VALIDATION_ERROR`, 500 `INTERNAL_SERVER_ERROR`.
+ */
+export function adminLogin(body: AdminLoginRequest): Promise<AuthTokenResponse> {
+  return requestEnvelope<AuthTokenResponse>({
+    method: 'POST',
+    path: '/v1/admin/auth/login',
+    body,
+  })
+}
 
 export interface ListProposalReportsParams {
   status?: ProposalReportStatus
@@ -63,12 +77,5 @@ export function listPendingPaymentProposals(params: ListPendingPaymentProposalsP
       skip: params.skip,
       limit: params.limit,
     },
-  })
-}
-
-export function resolveOffer(offerId: number): Promise<OfferResponse> {
-  return requestEnvelope<OfferResponse>({
-    method: 'POST',
-    path: `/v1/admin/offer/${offerId}/resolve`,
   })
 }
