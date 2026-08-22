@@ -23,6 +23,12 @@ Lane B/C에서는 Planner가, Lane A와 독립 검증에서는 오케스트레�
 대상 파일을 근거로 필요한 Context만 선택한다. 관련 없는 Context 문서는 읽지 않는다.
 선택 결과는 plan 또는 lightweight/review 입력에 기록해 후속 역할이 재탐색하지 않게 한다.
 
+모든 역할의 읽기 범위는 `root.md` + 선택된 Layer Context + 해당 작업의 코드로 제한한다.
+선택되지 않은 Layer의 `AGENTS.md`, 다른 Lane의 workflow 문서, `evolution/`,
+`monitoring/`, `validation/`은 그 작업을 직접 수행할 때만 읽는다. Presentation 작업은
+root + presentation, Domain 작업은 root + domain, Data 작업은 root + data를 읽는 것이
+기본이며, 한 작업에서 두 개 이상의 Context를 여는 것은 실제로 두 Layer를 건드릴 때뿐이다.
+
 ## Architecture와 Dependency Rule
 
 | Layer | 책임 | 위치 |
@@ -63,11 +69,16 @@ Canonical 역할은 다음 세 문서에만 정의한다.
 
 | Lane | 기준 | 흐름 |
 |---|---|---|
-| A — Lightweight | 단일 기존 파일의 명확한 문구/CSS/아이콘/소규모 수정. 새 파일·계약·타입·의존성 없음 | Implementer → Reviewer |
-| B — Standard | 화면, Component, API 연동, 새 타입 등 일반 기능 또는 애매한 변경 | Planner → Implementer → Reviewer |
+| A — Lightweight | 단일 Layer의 명확한 소규모 수정. 문구·CSS·아이콘·props 전달·작은 버그 수정 등. 새 파일·계약·타입·의존성·설계 판단 없음 | Implementer → Reviewer(검증) |
+| B — Standard | 여러 Layer에 영향을 주거나 설계 판단·새 계약·새 타입이 필요한 작업 | Planner → Implementer → Reviewer |
 | C — High Risk | 인증·권한·상태 전이·계약·Architecture·다중 Layer·대규모 refactor | Planner → Implementer → Reviewer → 강화 검증 |
 
-불확실하면 높은 Lane을 선택한다. 실행 세부는 `workflows/`의 해당 문서만 읽는다.
+Lane A가 기본값이다. 대상이 단일 Layer이고 요구사항과 대상 파일이 이미 확정돼 있으면
+Planner를 호출하지 않는다. Lane B는 "설계를 정해야 한다" 또는 "여러 Layer가 바뀐다"가
+성립할 때만 쓰고, C 기준(인증·권한·상태 전이·계약·Architecture)에 해당하면 범위가 작아도
+C를 쓴다. 어느 Lane인지 판단이 갈리면 A/B 사이에서는 A로 시작하고, 실행 중 범위가
+넓어지면 그때 승격한다. C 기준에 걸리는 불확실성만 상위 Lane으로 올린다.
+실행 세부는 `workflows/`의 해당 문서만 읽는다.
 FIX_REQUIRED이면 같은 Implementer가 지적만 수정하고 Reviewer가 재검증한다.
 
 역할 산출물은 `_workspace/{slug}/`에 둔다. slug는 오케스트레이터가 요구사항 기준으로
@@ -77,6 +88,30 @@ FIX_REQUIRED이면 같은 Implementer가 지적만 수정하고 Reviewer가 재�
 로 옮긴 뒤 새로 시작한다. 기존 plan·impl·review 파일은 덮어쓰거나 삭제하지 않는다.
 
 Planner와 Reviewer 호출 전후에는 `rules/mutation-guard.md`를 적용한다.
+
+## Orchestrator 범위
+
+오케스트레이터는 Lane 결정, Context 선택, Agent 호출, mutation guard와 usage boundary
+실행, PASS/FIX_REQUIRED 확인, 다음 Agent 결정만 한다. 코드베이스를 직접 재분석하지
+않고, Planner·Implementer·Reviewer가 이미 조사한 내용을 다시 조사하거나 요약하지 않으며,
+`_workspace/` 산출물 전문을 자신의 Context로 다시 읽지 않는다. 필요한 것은 산출물 경로와
+판정뿐이며, 다음 Agent에게는 경로를 넘긴다. Lane A 판단과 Context 선택에 필요한 최소한의
+확인(대상 파일 존재·위치)만 직접 수행한다. 사용자 보고는 판정과 변경 요약으로 끝낸다.
+
+## Agent 반환 형식
+
+각 역할은 오케스트레이터에게 아래 수준의 짧은 결과만 반환한다. 세부는 `_workspace/`
+산출물에 기록하고 반환문에 옮기지 않는다.
+
+```
+Planner:      DONE / plan: _workspace/{slug}/plan.md / affected: presentation / blockers: none
+Implementer:  DONE / changed: 5 files / report: _workspace/{slug}/impl.md
+Reviewer:     PASS | FIX_REQUIRED / typecheck: PASS / lint: PASS / build: PASS
+              / report: _workspace/{slug}/review_r{N}.md / BLOCKER n, MAJOR n
+```
+
+블로커·차단 사유가 있을 때만 한 줄을 덧붙인다. 코드 조각, diff, 로그 전문, 산출물 본문을
+반환하지 않는다.
 
 ## Verification Harness와 완료
 

@@ -13,6 +13,7 @@
 | 2026-08-21 | Scoped mutation guard to the git-observable area, added digest-only snapshot comparison, symmetrized the Codex entry point, set the new-document language | `rules/mutation-guard.md`, `root.md`, `AGENTS.md`, `workflows/standard.md`, `validation/dry-run.md` | the guard claimed a `_workspace/` guarantee gitignore makes impossible |
 | 2026-08-21 | Defined the closed Conventional Commit format, Korean summary policy, and allowed types | `rules/git.md`, `evolution/learnings.md` | remove ambiguity from human and AI commit messages |
 | 2026-08-21 | Separated `dev` to `main` PR creation from merge authority and required diff-derived change contents | `rules/git.md`, `evolution/learnings.md` | protect the deployment boundary and make promotion PRs reviewable |
+| 2026-08-22 | v1.1.0 token efficiency: default lightweight routing 강화, progressive context loading 강화, orchestrator 책임 축소, agent result summary 제한 | `VERSION`, `root.md`, `roles/*`, `workflows/lightweight.md` | v1.0.0 계측 결과를 기준선으로 두고 검증 품질 유지 상태에서 토큰 사용량을 줄이기 위해 |
 
 ## Migration coverage
 

@@ -20,4 +20,5 @@ For Lane B/C, write only `_workspace/{slug}/plan.md` (maximum 80 lines):
 
 If an API contract, state, permission, route, or requirement affecting the
 implementation is unknown, stop before implementation and request evidence.
-Return only the report path, blockers, and next action.
+Return only `DONE`, the report path, the affected layer(s), and blockers, per
+the shared Root's agent return format.
