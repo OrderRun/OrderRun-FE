@@ -949,3 +949,49 @@ body {
     padding: var(--or-space-4);
   }
 }
+
+.or-auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--or-space-6);
+  background: var(--or-bg);
+}
+
+.or-auth-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--or-space-4);
+  width: 100%;
+  max-width: 360px;
+  padding: var(--or-space-8);
+  background: var(--or-surface);
+  border: 1px solid var(--or-border);
+  border-radius: var(--or-radius-lg);
+  box-shadow: var(--or-shadow-card);
+}
+
+.or-auth-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--or-space-1);
+  margin-bottom: var(--or-space-2);
+}
+
+.or-auth-brand {
+  color: var(--or-primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.or-auth-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.or-auth-submit {
+  margin-top: var(--or-space-2);
+  justify-content: center;
+}
