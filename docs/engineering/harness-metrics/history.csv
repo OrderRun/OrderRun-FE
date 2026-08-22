@@ -1,0 +1,9 @@
+date,harnessVersion,provider,lane,role,runCount,sampleSize,avgOutputTokens,avgCacheReadTokens,avgProcessedTokens,avgRevisionRounds,firstPassRate,verificationPassRate
+2026-08-21,1.0.0,claude,,implementer,0,1,29697,2040361,2220600,,,
+2026-08-21,1.0.0,claude,,reviewer,0,1,33849,2449978,2868174,,,
+2026-08-21,1.0.0,codex,,unknown,0,3,9347,836224,903394,,,
+2026-08-22,1.0.0,claude,,orchestrator,1,1,100,3000,3300,0,1,1
+2026-08-22,1.0.0,claude,,planner,1,1,80,900,1100,0,1,1
+2026-08-22,1.0.0,codex,,implementer,1,1,120,1200,1470,0,1,1
+2026-08-22,1.0.0,codex,,orchestrator,1,1,150,5000,5400,0,1,1
+2026-08-22,1.0.0,codex,,reviewer,1,1,70,700,850,0,1,1
