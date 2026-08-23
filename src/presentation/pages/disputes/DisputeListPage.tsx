@@ -7,6 +7,7 @@ import { formatCount } from '../../components/formatters'
 import { DEMO_DISPUTES } from '../../demo/demoDisputes'
 import { useQueryState } from '../../hooks/useQueryState'
 import { requestDetailPath } from '../../routes/paths'
+import { toDisputeRow } from '../../mock/demoAdapters'
 import { DisputeTable } from './DisputeTable'
 
 const STATUS_OPTIONS = ['전체', '미처리', '처리 완료', '반려']
@@ -34,7 +35,7 @@ export function DisputeListPage() {
       const matchesStatus = status === '전체' || dispute.status === status
 
       return matchesKeyword && matchesStatus
-    })
+    }).map(toDisputeRow)
   }, [keyword, status])
 
   return (
@@ -65,8 +66,8 @@ export function DisputeListPage() {
           rows={rows}
           emptyMessage="조건에 맞는 분쟁이 없습니다."
           emptyHint="검색어나 필터 조건을 변경해 보세요."
-          onRowClick={(dispute) =>
-            navigate(requestDetailPath(dispute.proposalId, 'dispute'), {
+          onRowClick={(row) =>
+            navigate(requestDetailPath(row.proposalId, 'dispute'), {
               state: { from: location.pathname + location.search },
             })
           }

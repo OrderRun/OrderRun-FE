@@ -437,22 +437,6 @@ body {
   background: var(--or-danger-hover);
 }
 
-.or-linkbtn {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--or-primary);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  text-align: left;
-  cursor: pointer;
-}
-
-.or-linkbtn:hover {
-  text-decoration: underline;
-}
-
 /* ---------- table ---------- */
 
 .or-table-wrap {
@@ -604,16 +588,6 @@ body {
 
 .or-badge-pill {
   border-radius: 999px;
-}
-
-.or-badge-lg {
-  padding: 3px 10px;
-  font-size: 12px;
-}
-
-.or-flag-on {
-  color: var(--or-danger);
-  font-weight: 600;
 }
 
 .or-flag-off {
@@ -890,16 +864,6 @@ body {
   margin-left: 6px;
 }
 
-.or-inline-link {
-  color: var(--or-primary);
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.or-inline-link:hover {
-  text-decoration: underline;
-}
-
 .or-related-list {
   display: flex;
   flex-direction: column;
@@ -994,4 +958,28 @@ body {
 .or-auth-submit {
   margin-top: var(--or-space-2);
   justify-content: center;
+}
+
+/* ---------- section boundary states ---------- */
+
+.or-section-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--or-space-2);
+  padding: var(--or-space-8) var(--or-space-5);
+  color: var(--or-text-muted);
+  text-align: center;
+}
+
+.or-section-state-message {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.or-skeleton-line {
+  width: min(100%, 480px);
+  height: 12px;
+  border-radius: var(--or-radius-sm);
+  background: var(--or-surface-hover);
 }

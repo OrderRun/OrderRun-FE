@@ -19,6 +19,7 @@
     "api:sync": "curl -s \"$(sed -n 's/^VITE_API_BASE_URL=//p' .env.development.local)/openapi.json\" -o docs/api-spec/openapi.json"
   },
   "dependencies": {
+    "@tanstack/react-query": "^5.101.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2"

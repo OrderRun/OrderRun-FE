@@ -1,12 +1,12 @@
 import { DataTable } from '../../components/DataTable'
 import { StatusBadge } from '../../components/StatusBadge'
-import type { DemoDispute } from '../../demo/demoTypes'
+import type { DisputeRow } from '../../models/rows'
 
 interface DisputeTableProps {
-  rows: DemoDispute[]
+  rows: DisputeRow[]
   emptyMessage: string
   emptyHint?: string
-  onRowClick: (dispute: DemoDispute) => void
+  onRowClick: (row: DisputeRow) => void
 }
 
 /** 분쟁 목록 표현은 분쟁 관리와 대시보드가 이 컴포넌트 하나를 공유한다. */
@@ -19,7 +19,7 @@ export function DisputeTable({
   return (
     <DataTable
       rows={rows}
-      rowKey={(dispute) => dispute.disputeId}
+      rowKey={(row) => row.disputeId}
       emptyMessage={emptyMessage}
       emptyHint={emptyHint}
       onRowClick={onRowClick}
@@ -28,51 +28,43 @@ export function DisputeTable({
           key: 'disputeId',
           header: '분쟁 ID',
           width: '100px',
-          render: (dispute) => (
-            <span className="or-cell-id">{dispute.disputeId}</span>
-          ),
+          render: (row) => <span className="or-cell-id">{row.disputeId}</span>,
         },
         {
           key: 'proposalId',
           header: '요청 ID',
           width: '100px',
-          render: (dispute) => (
-            <span className="or-cell-id">{dispute.proposalId}</span>
-          ),
+          render: (row) => <span className="or-cell-id">{row.proposalId}</span>,
         },
         {
           key: 'offerId',
           header: '지원 ID',
           width: '100px',
-          render: (dispute) => (
-            <span className="or-cell-id">{dispute.offerId}</span>
-          ),
+          render: (row) => <span className="or-cell-id">{row.offerId}</span>,
         },
         {
           key: 'requester',
           header: '신청자',
           width: '120px',
-          render: (dispute) => dispute.requesterName,
+          render: (row) => row.requesterName,
         },
         {
           key: 'requesterRole',
           header: '역할',
           width: '80px',
-          render: (dispute) => <StatusBadge label={dispute.requesterRole} shape="pill" />,
+          render: (row) => <StatusBadge label={row.requesterRole} shape="pill" />,
         },
         {
           key: 'status',
           header: '처리 여부',
           width: '110px',
-          render: (dispute) => <StatusBadge label={dispute.status} shape="pill" />,
+          render: (row) => <StatusBadge label={row.statusLabel} shape="pill" />,
         },
         {
           key: 'requestedAt',
           header: '신청일',
           width: '140px',
-          render: (dispute) => (
-            <span className="or-cell-muted">{dispute.requestedAt}</span>
-          ),
+          render: (row) => <span className="or-cell-muted">{row.requestedAt}</span>,
         },
       ]}
     />

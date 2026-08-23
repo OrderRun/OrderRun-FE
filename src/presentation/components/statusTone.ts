@@ -17,6 +17,8 @@ const TONE_BY_LABEL: Record<string, StatusTone> = {
   진행중: 'indigo',
   완료: 'green',
   취소: 'gray',
+  '꼬붕 수행비 입금 완료': 'green',
+  '행님 입금비 환불 완료': 'green',
   분쟁중: 'crimson',
   미처리: 'rose',
   '처리 완료': 'green',

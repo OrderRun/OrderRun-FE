@@ -7,6 +7,7 @@ import { formatCount } from '../../components/formatters'
 import { DEMO_REQUEST_SUMMARIES } from '../../demo/demoSelectors'
 import { useQueryState } from '../../hooks/useQueryState'
 import { requestDetailPath } from '../../routes/paths'
+import { toRequestRow } from '../../mock/demoAdapters'
 import { RequestTable } from './RequestTable'
 
 const STATUS_OPTIONS = [
@@ -39,7 +40,7 @@ export function RequestListPage() {
       const matchesStatus = status === '전체' || summary.request.status === status
 
       return matchesKeyword && matchesStatus
-    })
+    }).map(toRequestRow)
   }, [keyword, status])
 
   return (
@@ -70,8 +71,8 @@ export function RequestListPage() {
           rows={rows}
           emptyMessage="조건에 맞는 요청이 없습니다."
           emptyHint="검색어나 필터 조건을 변경해 보세요."
-          onRowClick={(summary) =>
-            navigate(requestDetailPath(summary.request.proposalId), {
+          onRowClick={(row) =>
+            navigate(requestDetailPath(row.proposalId), {
               state: { from: location.pathname + location.search },
             })
           }

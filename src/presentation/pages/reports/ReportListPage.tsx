@@ -7,6 +7,7 @@ import { formatCount } from '../../components/formatters'
 import { DEMO_PROPOSAL_REPORTS } from '../../demo/demoProposalReports'
 import { useQueryState } from '../../hooks/useQueryState'
 import { requestDetailPath } from '../../routes/paths'
+import { toReportRow } from '../../mock/demoAdapters'
 import { ReportTable } from './ReportTable'
 import { REPORT_STATUS_OPTIONS, toReportStatusFilter } from './reportStatus'
 
@@ -36,7 +37,7 @@ export function ReportListPage() {
         statusFilter === null || report.reportStatus === statusFilter
 
       return matchesKeyword && matchesStatus
-    })
+    }).map(toReportRow)
   }, [keyword, status])
 
   return (
@@ -67,8 +68,8 @@ export function ReportListPage() {
           rows={rows}
           emptyMessage="조건에 맞는 Proposal 신고가 없습니다."
           emptyHint="검색어나 필터 조건을 변경해 보세요."
-          onRowClick={(report) =>
-            navigate(requestDetailPath(report.proposalId, 'report'), {
+          onRowClick={(row) =>
+            navigate(requestDetailPath(row.proposalId, 'report'), {
               state: { from: location.pathname + location.search },
             })
           }

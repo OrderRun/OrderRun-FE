@@ -23,3 +23,19 @@ export interface OfferResponse {
 }
 
 export type ApiResponse_OfferResponse_ = ApiResponse<OfferResponse>
+
+// Verbatim from `components.schemas.AdminOfferSummaryResponse`.
+// `runnerLevel`은 required가 아니고 스키마 default가 0이다.
+export interface AdminOfferSummaryResponse {
+  id: number
+  proposalId: number
+  runnerId: string
+  runnerName?: string | null
+  runnerLevel?: number
+  status: OfferStatus
+  accepted: boolean
+  hasDispute: boolean
+  amount: number
+  openChatUrl?: string | null
+  createdAt: string
+}

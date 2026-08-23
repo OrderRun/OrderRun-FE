@@ -7,6 +7,7 @@ import { formatCount } from '../../components/formatters'
 import { DEMO_MISSIONS } from '../../demo/demoMissions'
 import { useQueryState } from '../../hooks/useQueryState'
 import { requestDetailPath } from '../../routes/paths'
+import { toMissionRow } from '../../mock/demoAdapters'
 import { MissionTable } from './MissionTable'
 
 const STATUS_OPTIONS = ['전체', '진행중', '완료', '취소', '분쟁중']
@@ -32,7 +33,7 @@ export function MissionListPage() {
         mission.kkobungName.includes(trimmed)
       const matchesStatus = status === '전체' || mission.status === status
       return matchesKeyword && matchesStatus
-    })
+    }).map(toMissionRow)
   }, [keyword, status])
 
   return (
@@ -63,8 +64,8 @@ export function MissionListPage() {
           rows={rows}
           emptyMessage="조건에 맞는 미션이 없습니다."
           emptyHint="검색어나 필터 조건을 변경해 보세요."
-          onRowClick={(mission) =>
-            navigate(requestDetailPath(mission.proposalId, 'mission'), {
+          onRowClick={(row) =>
+            navigate(requestDetailPath(row.proposalId, 'mission'), {
               state: { from: location.pathname + location.search },
             })
           }

@@ -5,7 +5,12 @@ export type HttpMethod = 'GET' | 'POST'
 export interface RequestConfig {
   method: HttpMethod
   path: string
-  query?: Record<string, string | number | boolean | undefined>
+  /**
+   * 배열 값은 `status=A&status=B`처럼 같은 key를 반복해 직렬화한다. 목록
+   * endpoint의 `status` 필터가 스펙상 반복 파라미터이기 때문이다(예:
+   * `GET /v1/admin/dispute`의 `status` 설명). 빈 배열은 파라미터를 생략한다.
+   */
+  query?: Record<string, string | number | boolean | readonly (string | number)[] | undefined>
   body?: unknown
 }
 
@@ -35,6 +40,12 @@ function buildUrl(path: string, query?: RequestConfig['query']): string {
   if (query) {
     for (const [key, value] of Object.entries(query)) {
       if (value === undefined) continue
+      if (Array.isArray(value)) {
+        for (const item of value) {
+          url.searchParams.append(key, String(item))
+        }
+        continue
+      }
       url.searchParams.set(key, String(value))
     }
   }
@@ -114,16 +125,4 @@ export async function requestEnvelope<T>(config: RequestConfig): Promise<T> {
     throw await toApiError(response)
   }
   return unwrapEnvelope<T>(response)
-}
-
-/**
- * For operations whose success schema is unspecified in the spec (e.g.
- * pending-payment's `{}` 200 schema). No envelope unwrap, no invented shape.
- */
-export async function requestRaw(config: RequestConfig): Promise<unknown> {
-  const response = await sendRequest(config)
-  if (!response.ok) {
-    throw await toApiError(response)
-  }
-  return parseJsonSafely(response)
 }

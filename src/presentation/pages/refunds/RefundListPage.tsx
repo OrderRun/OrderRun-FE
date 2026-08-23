@@ -7,6 +7,7 @@ import { formatCount } from '../../components/formatters'
 import { DEMO_REFUNDS } from '../../demo/demoRefunds'
 import { useQueryState } from '../../hooks/useQueryState'
 import { requestDetailPath } from '../../routes/paths'
+import { toRefundRow } from '../../mock/demoAdapters'
 import { RefundTable } from './RefundTable'
 
 const STATUS_OPTIONS = [
@@ -42,7 +43,7 @@ export function RefundListPage() {
         fromDate === '' || refund.requestedAt.slice(0, 10) >= fromDate
 
       return matchesKeyword && matchesStatus && matchesDate
-    })
+    }).map(toRefundRow)
   }, [keyword, status, fromDate])
 
   return (
@@ -82,8 +83,8 @@ export function RefundListPage() {
           rows={rows}
           emptyMessage="조건에 맞는 환불 요청이 없습니다."
           emptyHint="검색어나 필터 조건을 변경해 보세요."
-          onRowClick={(refund) =>
-            navigate(requestDetailPath(refund.proposalId, 'refund'), {
+          onRowClick={(row) =>
+            navigate(requestDetailPath(row.proposalId, 'refund'), {
               state: { from: location.pathname + location.search },
             })
           }
