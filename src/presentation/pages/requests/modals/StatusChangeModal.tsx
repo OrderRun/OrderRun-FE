@@ -11,11 +11,17 @@ interface StatusChangeModalProps {
   currentStatus: string
   nextStatus: string
   requiresOpenChatUrl?: boolean
-  depositAccount?: string
-  depositorName?: string
+  /** 서버가 계좌 정보를 내려주지 않으면 null이다. 값을 지어내지 않는다. */
+  depositAccount?: string | null
+  depositAccountHolder?: string | null
+  depositorName?: string | null
   destructive?: boolean
   guide?: string
   notices?: string[]
+  /** 처리 중. 확인 버튼을 막아 같은 요청이 두 번 나가지 않게 한다. */
+  pending?: boolean
+  /** 처리 실패 문구. 모달을 연 채로 보여준다. */
+  error?: string | null
   onClose: () => void
   onConfirm: (openChatUrl: string) => void
 }
@@ -28,6 +34,9 @@ function toChangeLabel(status: string): string {
     !isHangul || finalConsonant === 0 || finalConsonant === 8 ? '로' : '으로'
   return `${status}${particle} 변경`
 }
+
+/** 처리 중에는 모달을 닫지 않는다(결과와 오류를 놓치지 않게). */
+function noop(): void {}
 
 function isValidUrl(value: string): boolean {
   return value.startsWith('http://') || value.startsWith('https://')
@@ -48,10 +57,13 @@ function StatusChangeModalContent({
   nextStatus,
   requiresOpenChatUrl = false,
   depositAccount,
+  depositAccountHolder,
   depositorName,
   destructive = false,
   guide,
   notices,
+  pending = false,
+  error = null,
   onClose,
   onConfirm,
 }: StatusChangeModalProps) {
@@ -61,16 +73,16 @@ function StatusChangeModalContent({
   const showUrlError =
     requiresOpenChatUrl && trimmedUrl !== '' && !isValidUrl(trimmedUrl)
   const confirmDisabled =
-    requiresOpenChatUrl && (trimmedUrl === '' || !isValidUrl(trimmedUrl))
+    pending || (requiresOpenChatUrl && (trimmedUrl === '' || !isValidUrl(trimmedUrl)))
 
   return (
     <Modal
       open
       title={title}
-      onClose={onClose}
+      onClose={pending ? noop : onClose}
       footer={
         <>
-          <Button variant="secondary" onClick={onClose}>
+          <Button variant="secondary" disabled={pending} onClick={onClose}>
             닫기
           </Button>
           <Button
@@ -98,18 +110,30 @@ function StatusChangeModalContent({
         </div>
       </div>
 
-      {depositAccount !== undefined && depositorName !== undefined ? (
+      {depositAccount === undefined &&
+      depositAccountHolder === undefined &&
+      depositorName === undefined ? null : (
         <div className="or-panel">
           <div className="or-kv-row">
             <span className="or-kv-label">입금 계좌</span>
-            <span className="or-kv-value">{depositAccount}</span>
+            <span className="or-kv-value">
+              {depositAccount ?? <span className="or-flag-off">해당 없음</span>}
+            </span>
+          </div>
+          <div className="or-kv-row">
+            <span className="or-kv-label">예금주명</span>
+            <span className="or-kv-value">
+              {depositAccountHolder ?? <span className="or-flag-off">해당 없음</span>}
+            </span>
           </div>
           <div className="or-kv-row">
             <span className="or-kv-label">입금자명</span>
-            <span className="or-kv-value">{depositorName}</span>
+            <span className="or-kv-value">
+              {depositorName ?? <span className="or-flag-off">해당 없음</span>}
+            </span>
           </div>
         </div>
-      ) : null}
+      )}
 
       {requiresOpenChatUrl ? (
         <label className="or-field">
@@ -136,6 +160,12 @@ function StatusChangeModalContent({
           ))}
         </ul>
       ) : null}
+
+      {error === null ? null : (
+        <p className="or-error-text" role="alert">
+          {error}
+        </p>
+      )}
     </Modal>
   )
 }

@@ -7,30 +7,48 @@ import {
   canCopyToClipboard,
   copyToClipboard,
   formatAmount,
+  formatShortId,
 } from '../../../components/formatters'
 import type {
-  DemoMission,
-  DemoProcessStatus,
-  DemoRequestStatus,
-} from '../../../demo/demoTypes'
+  ActionState,
+  MissionDetailView,
+  PayoutDetailView,
+} from '../../../models/detailViews'
 import { MissionPayoutModal } from '../modals/MissionPayoutModal'
 
 interface MissionInfoTabProps {
-  mission: DemoMission | undefined
-  requestStatus: DemoRequestStatus
-  settlementStatus: DemoProcessStatus
-  settledAt: string | null
-  adminNote: string
-  onPayout: (adminNote: string) => void
-  onPayoutReject: (adminNote: string) => void
+  mission: MissionDetailView | null
+  /** 수행비 지급 상세. 대상이 아니거나 기록이 없으면 null이다. */
+  payout: PayoutDetailView | null
+  /** 미션의 오픈채팅방 URL은 요청 상세가 들고 있다. */
+  openChatUrl: string | null
+  requestStatusLabel: string
+  action: ActionState
+  /**
+   * 성공했을 때만 resolve되는 처리 콜백. 모달은 이 promise가 성공했을 때만 닫고,
+   * 실패하면 열린 채로 `action.error`를 보여준다.
+   */
+  onPayout: (adminNote: string) => Promise<void>
+  onPayoutReject: (adminNote: string) => Promise<void>
+}
+
+/** 이름이 없는 응답(미션)에서 ID로 대신 그린다. 없는 이름을 만들지 않는다. */
+function personValue(name: string | null, id: string | null) {
+  if (name !== null) {
+    return name
+  }
+  if (id !== null) {
+    return <span title={id}>{formatShortId(id)}</span>
+  }
+  return <span className="or-flag-off">해당 없음</span>
 }
 
 export function MissionInfoTab({
   mission,
-  requestStatus,
-  settlementStatus,
-  settledAt,
-  adminNote,
+  payout,
+  openChatUrl,
+  requestStatusLabel,
+  action,
   onPayout,
   onPayoutReject,
 }: MissionInfoTabProps) {
@@ -38,7 +56,7 @@ export function MissionInfoTab({
   const [payoutOpen, setPayoutOpen] = useState(false)
   const copySupported = canCopyToClipboard()
 
-  if (!mission) {
+  if (mission === null) {
     return (
       <EmptyState
         message="생성된 미션이 없습니다."
@@ -47,11 +65,15 @@ export function MissionInfoTab({
     )
   }
 
-  const payoutRequired =
-    mission.status === '완료' && settlementStatus === '미처리'
+  const closeOnSuccess = () => setPayoutOpen(false)
+  // 실패는 `action.error`로 이미 화면에 그려진다. 모달은 열린 채로 둔다.
+  const ignoreFailure = () => {}
 
   const handleCopy = () => {
-    copyToClipboard(mission.openChatUrl).then(setCopied, () => setCopied(false))
+    if (openChatUrl === null) {
+      return
+    }
+    copyToClipboard(openChatUrl).then(setCopied, () => setCopied(false))
   }
 
   return (
@@ -59,24 +81,33 @@ export function MissionInfoTab({
       <InfoCard
         title="미션 정보"
         actions={
-          payoutRequired ? (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => setPayoutOpen(true)}
-            >
-              수행비 입금
-            </Button>
+          mission.payoutRequired ? (
+            <>
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={action.disabled || action.pending}
+                onClick={() => {
+                  action.reset()
+                  setPayoutOpen(true)
+                }}
+              >
+                수행비 입금
+              </Button>
+              {action.disabledReason === null ? null : (
+                <span className="or-help-text">{action.disabledReason}</span>
+              )}
+            </>
           ) : undefined
         }
         items={[
           { label: '미션 ID', value: mission.missionId },
           {
             label: '상태',
-            value: <StatusBadge label={mission.status} />,
+            value: <StatusBadge label={mission.statusLabel} />,
           },
-          { label: '행님', value: mission.hyungnimName },
-          { label: '꼬붕', value: mission.kkobungName },
+          { label: '행님', value: personValue(mission.hyungnimName, mission.hyungnimId) },
+          { label: '꼬붕', value: personValue(mission.kkobungName, mission.kkobungId) },
           {
             label: '연결된 요청',
             value: `요청 #${mission.proposalId}`,
@@ -97,34 +128,35 @@ export function MissionInfoTab({
               <span className="or-flag-off">아직 완료하지 않았습니다.</span>
             ),
           },
-          ...(mission.status === '완료'
-            ? [
+          ...(mission.payoutStatusLabel === null
+            ? []
+            : [
                 {
                   label: '수행비',
-                  value: formatAmount(mission.payoutAmount),
+                  value: formatAmount(payout?.amount ?? mission.errandFee),
                   newRow: true,
                 },
                 {
                   label: '수행비 입금',
-                  value: <StatusBadge label={settlementStatus} shape="pill" />,
-                },
-                {
-                  label: '입금일',
-                  value: settledAt ?? (
-                    <span className="or-flag-off">아직 입금되지 않았습니다.</span>
+                  value: (
+                    <StatusBadge label={mission.payoutStatusLabel} shape="pill" />
                   ),
                 },
                 {
-                  label: '관리자 메모',
-                  value:
-                    adminNote === '' ? (
-                      <span className="or-flag-off">작성된 메모가 없습니다.</span>
-                    ) : (
-                      adminNote
+                  label: '입금일',
+                  value: payout?.settledAt ??
+                    mission.settlementPaidAt ?? (
+                      <span className="or-flag-off">아직 입금되지 않았습니다.</span>
                     ),
                 },
-              ]
-            : []),
+                {
+                  label: '관리자 메모',
+                  value: payout?.adminNote ??
+                    mission.payoutMemo ?? (
+                      <span className="or-flag-off">작성된 메모가 없습니다.</span>
+                    ),
+                },
+              ]),
         ]}
       />
 
@@ -134,14 +166,14 @@ export function MissionInfoTab({
           {copied ? <span className="or-copy-feedback">복사했습니다.</span> : null}
         </div>
         <div className="or-card-body">
-          {mission.openChatUrl === '' ? (
+          {openChatUrl === null ? (
             <EmptyState
               message="등록된 오픈채팅방이 없습니다."
               hint="오픈채팅방이 등록되면 URL과 복사 버튼이 표시됩니다."
             />
           ) : (
             <div className="or-copy-row">
-              <span className="or-copy-url">{mission.openChatUrl}</span>
+              <span className="or-copy-url">{openChatUrl}</span>
               <Button
                 variant="secondary"
                 size="sm"
@@ -163,18 +195,21 @@ export function MissionInfoTab({
       <MissionPayoutModal
         open={payoutOpen}
         missionId={mission.missionId}
-        payoutAmount={mission.payoutAmount}
-        payoutAccount={mission.payoutAccount}
-        payoutAccountHolder={mission.payoutAccountHolder}
-        requestStatus={requestStatus}
-        onClose={() => setPayoutOpen(false)}
-        onConfirm={(note) => {
-          onPayout(note)
+        payoutAmount={payout?.amount ?? mission.errandFee}
+        payoutAccount={payout?.payoutAccount ?? null}
+        payoutAccountHolder={payout?.payoutAccountHolder ?? null}
+        requestStatusLabel={requestStatusLabel}
+        pending={action.pending}
+        error={action.error}
+        onClose={() => {
+          action.reset()
           setPayoutOpen(false)
         }}
+        onConfirm={(note) => {
+          onPayout(note).then(closeOnSuccess, ignoreFailure)
+        }}
         onReject={(note) => {
-          onPayoutReject(note)
-          setPayoutOpen(false)
+          onPayoutReject(note).then(closeOnSuccess, ignoreFailure)
         }}
       />
     </div>

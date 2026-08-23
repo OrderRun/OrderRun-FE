@@ -5,53 +5,38 @@ import { DataTable } from '../../../components/DataTable'
 import { InfoCard } from '../../../components/InfoCard'
 import { Modal } from '../../../components/Modal'
 import { StatusBadge } from '../../../components/StatusBadge'
-import type {
-  DemoProcessStatus,
-  DemoProposalReport,
-  DemoRequestStatus,
-} from '../../../demo/demoTypes'
+import type { ActionState } from '../../../models/detailViews'
+import type { ReportRow } from '../../../models/rows'
+import type { ReportDecision } from '../../../queries/detailMutations'
 
 interface ReportInfoTabProps {
-  reports: DemoProposalReport[]
-  requestStatus: DemoRequestStatus
-  statusById: Record<string, DemoProcessStatus>
-  /** 신고가 처리 완료되면 요청도 취소로 바뀐다. */
-  onComplete: (reportId: string) => void
-  onReject: (reportId: string) => void
+  reports: ReportRow[]
+  requestStatusLabel: string
+  action: ActionState
+  /** 성공했을 때만 resolve된다. 모달은 성공했을 때만 닫는다. */
+  onReview: (reportId: string, decision: ReportDecision) => Promise<void>
 }
 
 export function ReportInfoTab({
   reports,
-  requestStatus,
-  statusById,
-  onComplete,
-  onReject,
+  requestStatusLabel,
+  action,
+  onReview,
 }: ReportInfoTabProps) {
-  const [detailReport, setDetailReport] = useState<DemoProposalReport | null>(
-    null,
-  )
-  const [processTarget, setProcessTarget] =
-    useState<DemoProposalReport | null>(null)
+  const [detailReport, setDetailReport] = useState<ReportRow | null>(null)
+  const [processTarget, setProcessTarget] = useState<ReportRow | null>(null)
 
-  const statusOf = (report: DemoProposalReport): DemoProcessStatus =>
-    statusById[report.reportId] ?? report.reportStatus
+  const alreadyCancelled = requestStatusLabel === '취소'
 
-  const alreadyCancelled = requestStatus === '취소'
-
-  const completeReport = () => {
-    if (!processTarget) {
+  const review = (decision: ReportDecision) => {
+    if (processTarget === null) {
       return
     }
-    onComplete(processTarget.reportId)
-    setProcessTarget(null)
-  }
-
-  const rejectReport = () => {
-    if (!processTarget) {
-      return
-    }
-    onReject(processTarget.reportId)
-    setProcessTarget(null)
+    onReview(processTarget.reportId, decision).then(
+      () => setProcessTarget(null),
+      // 실패는 `action.error`로 이미 모달에 그려진다. 모달은 열린 채로 둔다.
+      () => {},
+    )
   }
 
   return (
@@ -87,7 +72,7 @@ export function ReportInfoTab({
             header: '처리 상태',
             width: '100px',
             render: (report) => (
-              <StatusBadge label={statusOf(report)} shape="pill" />
+              <StatusBadge label={report.statusLabel} shape="pill" />
             ),
           },
           {
@@ -95,12 +80,14 @@ export function ReportInfoTab({
             header: '처리',
             width: '110px',
             render: (report) =>
-              statusOf(report) === '미처리' ? (
+              report.statusLabel === '미처리' ? (
                 <Button
                   size="sm"
                   variant="primary"
+                  disabled={action.disabled || action.pending}
                   onClick={(event) => {
                     event.stopPropagation()
+                    action.reset()
                     setProcessTarget(report)
                   }}
                 >
@@ -118,6 +105,10 @@ export function ReportInfoTab({
           },
         ]}
       />
+
+      {action.disabledReason === null ? null : (
+        <p className="or-help-text">{action.disabledReason}</p>
+      )}
 
       <Modal
         open={detailReport !== null}
@@ -137,7 +128,7 @@ export function ReportInfoTab({
                 {
                   label: '처리 상태',
                   value: (
-                    <StatusBadge label={statusOf(detailReport)} shape="pill" />
+                    <StatusBadge label={detailReport.statusLabel} shape="pill" />
                   ),
                 },
                 { label: '신고자 ID', value: detailReport.reporterId },
@@ -163,30 +154,42 @@ export function ReportInfoTab({
         title="신고 처리"
         description={
           alreadyCancelled
-            ? `신고 #${processTarget?.reportId ?? ''}을 처리 완료해도 요청은 이미 취소 상태입니다. 반려하면 요청 상태는 그대로입니다.`
-            : `신고 #${processTarget?.reportId ?? ''}을 처리 완료하면 요청도 취소로 변경됩니다. 반려하면 요청 상태는 그대로입니다.`
+            ? `신고 #${processTarget?.reportId ?? ''}을 승인해도 요청은 이미 취소 상태입니다. 반려하면 요청 상태는 그대로입니다.`
+            : `신고 #${processTarget?.reportId ?? ''}을 승인하면 요청도 취소로 변경됩니다. 반려하면 요청 상태는 그대로입니다.`
         }
         confirmLabel="처리 완료"
         closeLabel="닫기"
         rejectLabel="반려"
-        onReject={rejectReport}
-        onClose={() => setProcessTarget(null)}
-        onConfirm={completeReport}
+        disabled={action.pending}
+        error={action.error}
+        onReject={() => review('reject')}
+        onClose={
+          action.pending
+            ? () => {}
+            : () => {
+                action.reset()
+                setProcessTarget(null)
+              }
+        }
+        onConfirm={() => review('accept')}
       >
         <div className="or-panel">
           <div className="or-kv-row">
             <span className="or-kv-label">요청 상태</span>
             {alreadyCancelled ? (
-              <StatusBadge label={requestStatus} />
+              <StatusBadge label={requestStatusLabel} />
             ) : (
               <span className="or-transition">
-                <StatusBadge label={requestStatus} />
+                <StatusBadge label={requestStatusLabel} />
                 <span className="or-transition-arrow">→</span>
                 <StatusBadge label="취소" />
               </span>
             )}
           </div>
         </div>
+        <ul className="or-notice-list">
+          <li>연결된 지원·미션 상태는 바뀌지 않습니다.</li>
+        </ul>
       </ConfirmModal>
     </>
   )

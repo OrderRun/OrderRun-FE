@@ -11,7 +11,10 @@ interface ConfirmModalProps {
   closeLabel?: string
   rejectLabel?: string
   onReject?: () => void
+  /** 처리 중이거나 조건을 못 갖춰 눌러선 안 되는 상태. 확인·반려 둘 다 막는다. */
   disabled?: boolean
+  /** 처리 실패 문구. 모달을 연 채로 보여준다. */
+  error?: string | null
   onClose: () => void
   onConfirm: () => void
   children?: ReactNode
@@ -27,6 +30,7 @@ export function ConfirmModal({
   rejectLabel,
   onReject,
   disabled = false,
+  error = null,
   onClose,
   onConfirm,
   children,
@@ -42,7 +46,7 @@ export function ConfirmModal({
             {closeLabel}
           </Button>
           {rejectLabel !== undefined && onReject !== undefined ? (
-            <Button variant="destructive" onClick={onReject}>
+            <Button variant="destructive" disabled={disabled} onClick={onReject}>
               {rejectLabel}
             </Button>
           ) : null}
@@ -54,6 +58,11 @@ export function ConfirmModal({
     >
       {description ? <p className="or-modal-desc">{description}</p> : null}
       {children}
+      {error === null ? null : (
+        <p className="or-error-text" role="alert">
+          {error}
+        </p>
+      )}
     </Modal>
   )
 }

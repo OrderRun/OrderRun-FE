@@ -11,16 +11,35 @@ export type AdminMutationAction =
   | 'confirmPayment'
   | 'cancelProposal'
   | 'resolveDispute'
+  | 'rejectDispute'
   | 'completePayout'
+  | 'rejectPayout'
   | 'processRefund'
+  | 'rejectRefund'
   | 'processReport'
 
 const INVALIDATION_TABLE: Record<AdminMutationAction, readonly AdminQueryDomain[]> = {
   confirmPayment: ['proposal', 'summary'],
-  cancelProposal: ['proposal', 'refund', 'summary'],
-  resolveDispute: ['dispute', 'proposal', 'mission', 'payout', 'refund', 'summary'],
+  // 요청 취소는 연결된 지원을 함께 취소하고, 진행 중 미션은 환불 대상으로 종결한다.
+  cancelProposal: ['proposal', 'offer', 'mission', 'refund', 'summary'],
+  resolveDispute: [
+    'dispute',
+    'proposal',
+    'offer',
+    'mission',
+    'payout',
+    'refund',
+    'summary',
+  ],
+  // 반려는 요청·지원·미션을 바꾸지 않는다(스펙 description).
+  rejectDispute: ['dispute', 'summary'],
+  // 지급 기록은 미션 상태만 바꾼다. 요청·지원은 그대로다.
   completePayout: ['payout', 'mission', 'summary'],
+  rejectPayout: ['payout', 'mission', 'summary'],
+  // 환불 완료는 연결된 요청을 취소로 종결한다.
   processRefund: ['refund', 'proposal', 'mission', 'summary'],
+  rejectRefund: ['refund', 'summary'],
+  // 신고 승인은 Proposal만 바꾼다(REPORTED). 지원·미션은 바뀌지 않는다.
   processReport: ['report', 'proposal', 'summary'],
 }
 

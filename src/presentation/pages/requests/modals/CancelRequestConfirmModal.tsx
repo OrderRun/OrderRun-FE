@@ -8,9 +8,11 @@ interface CancelRequestConfirmModalProps {
   proposalId: string
   currentStatus: string
   offerCount: number
-  /** 연결된 미션이 있으면 요청 취소가 미션까지 함께 취소한다. */
+  /** 연결된 미션이 있으면 서버가 진행 중 미션을 실패(환불 대상)로 종결한다. */
   hasMission: boolean
   refundRequired: boolean
+  pending: boolean
+  error: string | null
   onClose: () => void
   onConfirm: (adminNote: string) => void
 }
@@ -30,6 +32,8 @@ function CancelRequestConfirmModalContent({
   offerCount,
   hasMission,
   refundRequired,
+  pending,
+  error,
   onClose,
   onConfirm,
 }: CancelRequestConfirmModalProps) {
@@ -41,13 +45,15 @@ function CancelRequestConfirmModalContent({
       title="요청을 취소하시겠습니까?"
       description={
         hasMission
-          ? '연결된 미션도 함께 취소됩니다.'
+          ? '진행 중인 미션이 있으면 실패로 종결되어 환불 대상이 됩니다.'
           : '아직 미션이 생성되지 않았습니다.'
       }
       confirmLabel="요청 취소"
       confirmVariant="destructive"
       closeLabel="닫기"
-      onClose={onClose}
+      disabled={pending}
+      error={error}
+      onClose={pending ? () => {} : onClose}
       onConfirm={() => onConfirm(adminNote.trim())}
     >
       <div className="or-panel">
@@ -83,6 +89,7 @@ function CancelRequestConfirmModalContent({
         <textarea
           className="or-textarea"
           value={adminNote}
+          disabled={pending}
           placeholder="취소 사유나 확인한 내용을 남겨주세요."
           onChange={(event) => setAdminNote(event.target.value)}
         />
