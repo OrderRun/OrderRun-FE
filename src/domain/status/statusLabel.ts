@@ -90,3 +90,23 @@ const PAYOUT_STATUS_LABELS: Record<PayoutStatus, string> = {
 export function toPayoutStatusLabel(status: PayoutStatus): string {
   return PAYOUT_STATUS_LABELS[status]
 }
+
+/**
+ * 미션 목록의 '처리 여부'. 미션 응답에는 `PayoutStatus`가 없고, 수행비 입금은
+ * 미션 상태 전이로 드러난다: 분쟁을 `미션 완료`로 처리하면 `COMPLETED`가 되고
+ * 관리자가 꼬붕에게 수행비를 수동 입금하면 `PAID`가 된다. 따라서 입금이 필요한
+ * 건(`COMPLETED`)만 '미처리'다.
+ *
+ * `STARTED`/`DISPUTED`는 아직 지급 대상이 아니고 `FAILED`/`REFUNDED`는 지급이
+ * 아니라 환불로 끝난 건이므로 모두 대상 밖(null → 표에서 '해당 없음')이다.
+ * `settlementPaid` boolean은 이 판단에 쓰지 않는다.
+ */
+export function toMissionPayoutStatusLabel(status: MissionStatus): string | null {
+  if (status === 'COMPLETED') {
+    return '미처리'
+  }
+  if (status === 'PAID') {
+    return '처리 완료'
+  }
+  return null
+}

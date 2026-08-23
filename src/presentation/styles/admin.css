@@ -996,3 +996,32 @@ body {
   border-radius: var(--or-radius-sm);
   background: var(--or-surface-hover);
 }
+
+/* ---------- pagination ---------- */
+
+.or-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--or-space-3);
+  padding: var(--or-space-3) var(--or-space-5);
+  border-top: 1px solid var(--or-border);
+}
+
+.or-pagination-range {
+  color: var(--or-text-muted);
+  font-size: 12px;
+}
+
+.or-pagination-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--or-space-2);
+}
+
+.or-pagination-position {
+  color: var(--or-text-subtle);
+  font-size: 12px;
+  white-space: nowrap;
+}

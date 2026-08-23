@@ -1,16 +1,28 @@
 import type { AdminDisputeSummaryResponse } from '../../data/api/contracts/dispute'
+import type { MissionResponse } from '../../data/api/contracts/mission'
+import type { AdminOfferSummaryResponse } from '../../data/api/contracts/offer'
 import type { AdminPayoutSummaryResponse } from '../../data/api/contracts/payout'
 import type { AdminProposalSummaryResponse } from '../../data/api/contracts/proposal'
 import type { ProposalReportResponse } from '../../data/api/contracts/proposalReport'
 import type { AdminRefundSummaryResponse } from '../../data/api/contracts/refund'
 import {
   toDisputeStatusLabel,
+  toMissionPayoutStatusLabel,
+  toMissionStatusLabel,
+  toOfferStatusLabel,
   toPayoutStatusLabel,
   toReportStatusLabel,
   toRequestStatusLabel,
 } from '../../domain/status/statusLabel'
 import { formatDateTime } from '../components/formatters'
-import type { DisputeRow, MissionRow, RefundRow, ReportRow, RequestRow } from './rows'
+import type {
+  DisputeRow,
+  MissionRow,
+  OfferRow,
+  RefundRow,
+  ReportRow,
+  RequestRow,
+} from './rows'
 
 /**
  * 서버 DTO → 표 view-model 변환 경계. 이름 있는 이 한 곳에서만 변환한다.
@@ -24,6 +36,38 @@ export function toRequestRowFromApi(dto: AdminProposalSummaryResponse): RequestR
     amount: dto.errandFee,
     statusLabel: toRequestStatusLabel(dto.status),
     offerCount: dto.offerCount,
+    createdAt: formatDateTime(dto.createdAt),
+  }
+}
+
+export function toOfferRowFromApi(dto: AdminOfferSummaryResponse): OfferRow {
+  return {
+    offerId: String(dto.id),
+    proposalId: String(dto.proposalId),
+    kkobungName: dto.runnerName ?? dto.runnerId,
+    amount: dto.amount,
+    statusLabel: toOfferStatusLabel(dto.status),
+    selected: dto.accepted,
+    appliedAt: formatDateTime(dto.createdAt),
+  }
+}
+
+/**
+ * `MissionResponse`에는 행님·꼬붕 이름도 오픈채팅방 URL도 없다(스펙 확인).
+ * 없는 값을 만들어내지 않고 ID만 넘겨 표가 ID 축약으로 대신 그리게 한다.
+ */
+export function toMissionRowFromApi(dto: MissionResponse): MissionRow {
+  return {
+    key: `mission-${dto.id}`,
+    missionId: String(dto.id),
+    proposalId: String(dto.proposalId),
+    hyungnimName: null,
+    hyungnimId: dto.ordererId,
+    kkobungName: null,
+    kkobungId: dto.runnerId,
+    statusLabel: toMissionStatusLabel(dto.status),
+    payoutStatusLabel: toMissionPayoutStatusLabel(dto.status),
+    openChatUrl: null,
     createdAt: formatDateTime(dto.createdAt),
   }
 }
@@ -65,7 +109,9 @@ export function toMissionRowFromPayout(dto: AdminPayoutSummaryResponse): Mission
     missionId: null,
     proposalId: String(dto.proposalId),
     hyungnimName: null,
+    hyungnimId: null,
     kkobungName: dto.runnerName ?? dto.runnerId,
+    kkobungId: dto.runnerId,
     statusLabel: null,
     payoutStatusLabel: toPayoutStatusLabel(dto.status),
     openChatUrl: null,

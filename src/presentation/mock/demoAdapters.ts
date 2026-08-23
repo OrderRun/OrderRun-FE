@@ -1,6 +1,7 @@
 import type {
   DemoDispute,
   DemoMission,
+  DemoOffer,
   DemoProposalReport,
   DemoRefund,
   DemoRequestSummary,
@@ -9,6 +10,7 @@ import { findDemoRequestStatus } from '../demo/demoSelectors'
 import type {
   DisputeRow,
   MissionRow,
+  OfferRow,
   RefundRow,
   ReportRow,
   RequestRow,
@@ -56,13 +58,27 @@ export function toRefundRow(refund: DemoRefund): RefundRow {
   }
 }
 
+export function toOfferRow(offer: DemoOffer): OfferRow {
+  return {
+    offerId: offer.offerId,
+    proposalId: offer.proposalId,
+    kkobungName: offer.kkobungName,
+    amount: offer.amount,
+    statusLabel: offer.status,
+    selected: offer.selected,
+    appliedAt: offer.appliedAt,
+  }
+}
+
 export function toMissionRow(mission: DemoMission): MissionRow {
   return {
     key: mission.missionId,
     missionId: mission.missionId,
     proposalId: mission.proposalId,
     hyungnimName: mission.hyungnimName,
+    hyungnimId: null,
     kkobungName: mission.kkobungName,
+    kkobungId: null,
     statusLabel: mission.status,
     payoutStatusLabel: mission.status === '완료' ? mission.settlementStatus : null,
     openChatUrl: mission.openChatUrl,

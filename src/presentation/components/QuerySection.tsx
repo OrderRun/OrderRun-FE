@@ -4,9 +4,18 @@ import { formatCount } from './formatters'
 import { toQueryErrorMessage } from './queryFeedback'
 
 interface QuerySectionProps {
-  title: string
+  /** `header`를 넘기지 않았을 때 그리는 기본 카드 머리말. */
+  title?: string
   /** 성공했을 때만 건수를 그린다. 로딩·오류 중에는 null을 넘긴다. */
-  count: number | null
+  count?: number | null
+  /**
+   * 카드 머리말을 통째로 대신할 슬롯. 목록 페이지는 여기에 검색·필터 툴바를
+   * 넣어 **로딩·오류 중에도 툴바가 남게** 한다. 조건을 다시 조작할 수단이
+   * 사라지면 오류에서 빠져나올 방법이 없다.
+   */
+  header?: ReactNode
+  /** 성공했을 때 본문 아래에 붙는 슬롯(페이지네이션). */
+  footer?: ReactNode
   isPending: boolean
   isError: boolean
   error: unknown
@@ -22,6 +31,8 @@ interface QuerySectionProps {
 export function QuerySection({
   title,
   count,
+  header,
+  footer,
   isPending,
   isError,
   error,
@@ -30,12 +41,16 @@ export function QuerySection({
 }: QuerySectionProps) {
   return (
     <section className="or-card">
-      <div className="or-card-head">
-        <h2 className="or-card-title">{title}</h2>
-        {count === null ? null : (
-          <span className="or-result-count">{formatCount(count)}</span>
-        )}
-      </div>
+      {header === undefined ? (
+        <div className="or-card-head">
+          <h2 className="or-card-title">{title}</h2>
+          {count === undefined || count === null ? null : (
+            <span className="or-result-count">{formatCount(count)}</span>
+          )}
+        </div>
+      ) : (
+        header
+      )}
       {isPending ? (
         <div className="or-section-state" role="status">
           <span className="or-skeleton-line" aria-hidden="true" />
@@ -50,7 +65,10 @@ export function QuerySection({
           </Button>
         </div>
       ) : (
-        children
+        <>
+          {children}
+          {footer}
+        </>
       )}
     </section>
   )
