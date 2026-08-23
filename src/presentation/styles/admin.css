@@ -149,6 +149,19 @@ body {
   font-weight: 700;
 }
 
+.or-avatar-toggle {
+  padding: 0;
+  border: 0;
+  font-family: inherit;
+  letter-spacing: -0.5px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.or-avatar-toggle:hover {
+  background: var(--or-primary-ring);
+}
+
 .or-content {
   flex: 1;
   min-width: 0;
