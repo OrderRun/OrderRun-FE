@@ -1,25 +1,20 @@
-import { useMemo } from 'react'
+import { useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { DataTable } from '../../components/DataTable'
 import { FilterSelect } from '../../components/FilterSelect'
 import { PageHeader } from '../../components/PageHeader'
+import { Pagination } from '../../components/Pagination'
+import { QuerySection } from '../../components/QuerySection'
 import { SearchInput } from '../../components/SearchInput'
 import { StatusBadge } from '../../components/StatusBadge'
-import { formatAmount, formatCount } from '../../components/formatters'
-import { DEMO_OFFERS } from '../../demo/demoOffers'
-import { hasDemoDisputeOnOffer } from '../../demo/demoSelectors'
+import { formatAmount } from '../../components/formatters'
+import { OFFER_STATUS_FILTER_OPTIONS } from '../../../domain/status/statusFilter'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { parseListPage, useResetOutOfRangePage } from '../../hooks/useListPage'
 import { useQueryState } from '../../hooks/useQueryState'
+import { useOfferListQuery } from '../../queries/listQueries'
 import { requestDetailPath } from '../../routes/paths'
 
-const STATUS_OPTIONS = [
-  '전체',
-  '대기중',
-  '선택됨',
-  '진행중',
-  '완료',
-  '취소',
-  '분쟁중',
-]
 const SELECTED_OPTIONS = ['전체', '선택됨', '미선택']
 const DISPUTE_OPTIONS = ['전체', '분쟁 있음', '분쟁 없음']
 
@@ -28,39 +23,34 @@ const QUERY_DEFAULTS = {
   status: '전체',
   selected: '전체',
   dispute: '전체',
+  page: '1',
 }
 
 export function OfferListPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { get, set } = useQueryState(QUERY_DEFAULTS)
+  const { get, setMany } = useQueryState(QUERY_DEFAULTS)
   const keyword = get('q')
-  const status = get('status', STATUS_OPTIONS)
+  const status = get('status', OFFER_STATUS_FILTER_OPTIONS)
   const selected = get('selected', SELECTED_OPTIONS)
   const dispute = get('dispute', DISPUTE_OPTIONS)
+  const debouncedKeyword = useDebouncedValue(keyword, 300)
 
-  const rows = useMemo(() => {
-    const trimmed = keyword.trim()
-    const lowered = trimmed.toLowerCase()
+  // 서버의 `accepted`/`hasDispute`는 boolean이라 '전체'는 파라미터를 싣지 않는다.
+  const accepted = selected === '전체' ? undefined : selected === '선택됨'
+  const hasDispute = dispute === '전체' ? undefined : dispute === '분쟁 있음'
 
-    return DEMO_OFFERS.filter((offer) => {
-      const matchesKeyword =
-        trimmed === '' ||
-        offer.offerId.toLowerCase().includes(lowered) ||
-        offer.proposalId.toLowerCase().includes(lowered) ||
-        offer.kkobungName.includes(trimmed)
-      const matchesStatus = status === '전체' || offer.status === status
-      const matchesSelected =
-        selected === '전체' ||
-        (selected === '선택됨' ? offer.selected : !offer.selected)
-      const hasDispute = hasDemoDisputeOnOffer(offer.offerId)
-      const matchesDispute =
-        dispute === '전체' ||
-        (dispute === '분쟁 있음' ? hasDispute : !hasDispute)
+  const resetToFirstPage = useCallback(() => setMany([['page', '1']]), [setMany])
 
-      return matchesKeyword && matchesStatus && matchesSelected && matchesDispute
-    })
-  }, [keyword, status, selected, dispute])
+  const page = parseListPage(get('page'))
+  const query = useOfferListQuery({
+    statusLabel: status,
+    keyword: debouncedKeyword,
+    accepted,
+    hasDispute,
+    page,
+  })
+  useResetOutOfRangePage(page, query.data?.totalPages, resetToFirstPage)
 
   return (
     <>
@@ -69,37 +59,53 @@ export function OfferListPage() {
         description="모든 지원 내역을 조회하고 연결된 요청으로 이동할 수 있습니다."
       />
 
-      <section className="or-card">
-        <div className="or-toolbar">
-          <SearchInput
-            label="검색"
-            value={keyword}
-            placeholder="지원 ID, 요청 ID 또는 꼬붕 이름으로 검색"
-            onChange={(value) => set('q', value)}
-          />
-          <FilterSelect
-            label="지원 상태"
-            value={status}
-            options={STATUS_OPTIONS}
-            onChange={(value) => set('status', value)}
-          />
-          <FilterSelect
-            label="선택 여부"
-            value={selected}
-            options={SELECTED_OPTIONS}
-            onChange={(value) => set('selected', value)}
-          />
-          <FilterSelect
-            label="분쟁 여부"
-            value={dispute}
-            options={DISPUTE_OPTIONS}
-            onChange={(value) => set('dispute', value)}
-          />
-          <span className="or-result-count">{formatCount(rows.length)}</span>
-        </div>
-
+      <QuerySection
+        header={
+          <div className="or-toolbar">
+            <SearchInput
+              label="검색"
+              value={keyword}
+              placeholder="지원 ID, 요청 ID 또는 꼬붕 이름으로 검색"
+              onChange={(value) => setMany([['q', value], ['page', '1']])}
+            />
+            <FilterSelect
+              label="지원 상태"
+              value={status}
+              options={OFFER_STATUS_FILTER_OPTIONS}
+              onChange={(value) => setMany([['status', value], ['page', '1']])}
+            />
+            <FilterSelect
+              label="선택 여부"
+              value={selected}
+              options={SELECTED_OPTIONS}
+              onChange={(value) => setMany([['selected', value], ['page', '1']])}
+            />
+            <FilterSelect
+              label="분쟁 여부"
+              value={dispute}
+              options={DISPUTE_OPTIONS}
+              onChange={(value) => setMany([['dispute', value], ['page', '1']])}
+            />
+          </div>
+        }
+        footer={
+          query.data === undefined ? null : (
+            <Pagination
+              page={page}
+              totalPages={query.data.totalPages}
+              totalElements={query.data.totalElements}
+              pageSize={query.data.pageSize}
+              onChange={(next) => setMany([['page', String(next + 1)]])}
+            />
+          )
+        }
+        isPending={query.isPending}
+        isError={query.isError}
+        error={query.error}
+        onRetry={() => void query.refetch()}
+      >
         <DataTable
-          rows={rows}
+          rows={query.data?.rows ?? []}
           rowKey={(offer) => offer.offerId}
           emptyMessage="조건에 맞는 지원이 없습니다."
           emptyHint="검색어나 필터 조건을 변경해 보세요."
@@ -120,9 +126,7 @@ export function OfferListPage() {
               key: 'proposalId',
               header: '요청 ID',
               width: '120px',
-              render: (offer) => (
-                <span className="or-cell-id">요청 #{offer.proposalId}</span>
-              ),
+              render: (offer) => <span className="or-cell-id">{offer.proposalId}</span>,
             },
             {
               key: 'kkobung',
@@ -142,7 +146,7 @@ export function OfferListPage() {
               key: 'status',
               header: '지원 상태',
               width: '90px',
-              render: (offer) => <StatusBadge label={offer.status} />,
+              render: (offer) => <StatusBadge label={offer.statusLabel} />,
             },
             {
               key: 'selected',
@@ -165,7 +169,7 @@ export function OfferListPage() {
             },
           ]}
         />
-      </section>
+      </QuerySection>
     </>
   )
 }

@@ -1,13 +1,13 @@
 import { DataTable } from '../../components/DataTable'
 import { StatusBadge } from '../../components/StatusBadge'
 import { formatAmount, formatCount } from '../../components/formatters'
-import type { DemoRequestSummary } from '../../demo/demoTypes'
+import type { RequestRow } from '../../models/rows'
 
 interface RequestTableProps {
-  rows: DemoRequestSummary[]
+  rows: RequestRow[]
   emptyMessage: string
   emptyHint?: string
-  onRowClick: (summary: DemoRequestSummary) => void
+  onRowClick: (row: RequestRow) => void
 }
 
 /** 요청 목록 표현은 요청 관리와 대시보드가 이 컴포넌트 하나를 공유한다. */
@@ -20,7 +20,7 @@ export function RequestTable({
   return (
     <DataTable
       rows={rows}
-      rowKey={(summary) => summary.request.proposalId}
+      rowKey={(row) => row.proposalId}
       emptyMessage={emptyMessage}
       emptyHint={emptyHint}
       onRowClick={onRowClick}
@@ -29,49 +29,41 @@ export function RequestTable({
           key: 'proposalId',
           header: '요청 ID',
           width: '100px',
-          render: (summary) => (
-            <span className="or-cell-id">{summary.request.proposalId}</span>
-          ),
+          render: (row) => <span className="or-cell-id">{row.proposalId}</span>,
         },
         {
           key: 'hyungnim',
           header: '행님',
           width: '100px',
-          render: (summary) => summary.request.hyungnimName,
+          render: (row) => row.hyungnimName,
         },
         {
           key: 'amount',
           header: '금액',
           width: '110px',
-          render: (summary) => (
-            <span className="or-cell-amount">
-              {formatAmount(summary.request.amount)}
-            </span>
+          render: (row) => (
+            <span className="or-cell-amount">{formatAmount(row.amount)}</span>
           ),
         },
         {
           key: 'status',
           header: '요청 상태',
           width: '90px',
-          render: (summary) => <StatusBadge label={summary.request.status} />,
+          render: (row) => <StatusBadge label={row.statusLabel} />,
         },
         {
           key: 'offerCount',
           header: '지원 수',
           width: '80px',
-          render: (summary) => (
-            <span className="or-cell-amount">
-              {formatCount(summary.offerCount)}
-            </span>
+          render: (row) => (
+            <span className="or-cell-amount">{formatCount(row.offerCount)}</span>
           ),
         },
         {
           key: 'createdAt',
           header: '생성일',
           width: '140px',
-          render: (summary) => (
-            <span className="or-cell-muted">{summary.request.createdAt}</span>
-          ),
+          render: (row) => <span className="or-cell-muted">{row.createdAt}</span>,
         },
       ]}
     />

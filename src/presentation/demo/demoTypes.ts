@@ -61,6 +61,10 @@ export interface DemoMission {
   status: DemoMissionStatus
   openChatUrl: string
   createdAt: string
+  /** 행님이 "임무 수행 완료"를 누른 시각. 누르지 않았으면 null. */
+  hyungnimCompletedAt: string | null
+  /** 꼬붕이 "임무 수행 완료"를 누른 시각. 누르지 않았으면 null. */
+  kkobungCompletedAt: string | null
   /** 꼬붕에게 줄 수행비. */
   payoutAmount: number
   payoutAccount: string
@@ -124,6 +128,7 @@ export interface DemoProposalReport {
   targetType: 'Proposal'
   proposalId: string
   reporterId: string
+  reporterName: string
   reasonQuestionText: string
   detailReason?: string
   reportedAt: string

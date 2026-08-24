@@ -5,10 +5,26 @@ Without spawning a Planner, the orchestrator selects the Context from the exact 
 target file, then passes that selection with the one-line request directly to the canonical
 [`Implementer`](../roles/implementer.md); no plan is written.
 
+Lane A is the default route for a small, single-layer change; promoting to
+Lane B is a decision that needs a reason, not the other way round.
+
 Then run the canonical [`Reviewer`](../roles/reviewer.md) as an independent
-verifier with the same narrowed scope.
+verifier with the same narrowed scope: the shared gate plus the changed files
+and their direct boundary partners. There is no plan to read, and the Context
+selection the orchestrator already made is passed in rather than redone.
 Apply [`mutation-guard.md`](../rules/mutation-guard.md) immediately before and after that
 reviewer call. The
 reviewer writes `review_r{N}.md`, runs the shared gate, and returns PASS or
 FIX_REQUIRED. Fixes go to the retained implementer; a request that expands scope
 is promoted to Lane B or C.
+
+## Usage monitoring
+
+The orchestrator records usage for the implementer and the verifying reviewer,
+and for each fix round, per [`../monitoring/README.md`](../monitoring/README.md).
+Lane A records no planner, which is what makes its token cost comparable against
+Lane B. A collector failure is a monitoring warning only.
+
+The run boundary (`harness:usage:start` before the first spawn,
+`harness:usage:end` after PASS) brackets the whole run, so orchestrator usage is
+this run's delta and not the whole Claude session.

@@ -4,15 +4,20 @@ import { DataTable } from '../../../components/DataTable'
 import { InfoCard } from '../../../components/InfoCard'
 import { Modal } from '../../../components/Modal'
 import { StatusBadge } from '../../../components/StatusBadge'
-import type { DemoOffer } from '../../../demo/demoTypes'
+import { formatAmount } from '../../../components/formatters'
+import type { OfferRow } from '../../../models/rows'
 
 interface OfferListTabProps {
-  offers: DemoOffer[]
+  offers: OfferRow[]
   selectedOfferId: string | null
 }
 
+/**
+ * 지원 목록. `AdminOfferSummaryResponse`에는 지원 메시지가 없어(스펙 확인)
+ * 상세 모달에서도 메시지를 그리지 않는다.
+ */
 export function OfferListTab({ offers, selectedOfferId }: OfferListTabProps) {
-  const [detailOffer, setDetailOffer] = useState<DemoOffer | null>(null)
+  const [detailOffer, setDetailOffer] = useState<OfferRow | null>(null)
 
   return (
     <>
@@ -40,7 +45,7 @@ export function OfferListTab({ offers, selectedOfferId }: OfferListTabProps) {
             key: 'status',
             header: '상태',
             width: '90px',
-            render: (offer) => <StatusBadge label={offer.status} />,
+            render: (offer) => <StatusBadge label={offer.statusLabel} />,
           },
           {
             key: 'appliedAt',
@@ -55,7 +60,7 @@ export function OfferListTab({ offers, selectedOfferId }: OfferListTabProps) {
             header: '선택 여부',
             width: '100px',
             render: (offer) =>
-              offer.offerId === selectedOfferId ? (
+              offer.selected ? (
                 <StatusBadge label="선택됨" shape="pill" />
               ) : (
                 <span className="or-flag-off">미선택</span>
@@ -75,28 +80,22 @@ export function OfferListTab({ offers, selectedOfferId }: OfferListTabProps) {
         }
       >
         {detailOffer ? (
-          <>
-            <InfoCard
-              items={[
-                { label: '지원 ID', value: detailOffer.offerId },
-                { label: '꼬붕', value: detailOffer.kkobungName },
-                {
-                  label: '지원 상태',
-                  value: <StatusBadge label={detailOffer.status} />,
-                },
-                { label: '신청일', value: detailOffer.appliedAt },
-                {
-                  label: '선택 여부',
-                  value:
-                    detailOffer.offerId === selectedOfferId ? '선택됨' : '미선택',
-                },
-              ]}
-            />
-            <div className="or-field">
-              <span className="or-field-label">지원 메시지</span>
-              <p className="or-help-text">{detailOffer.message}</p>
-            </div>
-          </>
+          <InfoCard
+            items={[
+              { label: '지원 ID', value: detailOffer.offerId },
+              { label: '꼬붕', value: detailOffer.kkobungName },
+              {
+                label: '지원 상태',
+                value: <StatusBadge label={detailOffer.statusLabel} />,
+              },
+              { label: '금액', value: formatAmount(detailOffer.amount) },
+              { label: '신청일', value: detailOffer.appliedAt, newRow: true },
+              {
+                label: '선택 여부',
+                value: detailOffer.selected ? '선택됨' : '미선택',
+              },
+            ]}
+          />
         ) : null}
       </Modal>
     </>
