@@ -1,12 +1,16 @@
 import type { MissionResolution, MissionStatus } from '../../../domain/status/missionStatus'
 
 // Verbatim from `components.schemas.MissionResponse`.
+// `ordererName`/`runnerName`은 `required` 목록에 없고 탈퇴한 사용자는 null이다.
 export interface MissionResponse {
   id: number
   proposalId: number
   offerId: number
   ordererId: string
+  ordererName?: string | null
   runnerId: string
+  runnerName?: string | null
+  openChatUrl?: string | null
   status: MissionStatus
   errandFee: number
   settlementPaid: boolean

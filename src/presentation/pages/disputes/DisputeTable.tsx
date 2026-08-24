@@ -1,5 +1,7 @@
+import { ActorName } from '../../components/ActorName'
 import { DataTable } from '../../components/DataTable'
 import { StatusBadge } from '../../components/StatusBadge'
+import { toActorRoleLabel } from '../../../domain/actor/roleLabel'
 import type { DisputeRow } from '../../models/rows'
 
 interface DisputeTableProps {
@@ -46,13 +48,17 @@ export function DisputeTable({
           key: 'requester',
           header: '신청자',
           width: '120px',
-          render: (row) => row.requesterName,
+          render: (row) => (
+            <ActorName name={row.requesterName} id={row.requesterId} variant="cell" />
+          ),
         },
         {
           key: 'requesterRole',
           header: '역할',
           width: '80px',
-          render: (row) => <StatusBadge label={row.requesterRole} shape="pill" />,
+          render: (row) => (
+            <StatusBadge label={toActorRoleLabel(row.requesterRole)} shape="pill" />
+          ),
         },
         {
           key: 'status',

@@ -3,12 +3,14 @@ import type { ProposalReportStatus } from '../../../domain/status/proposalReport
 import type { ProposalStatus } from '../../../domain/status/proposalStatus'
 
 // Verbatim field list from `components.schemas.ProposalReportResponse`.
-// `detailReason`/`reviewedAt`/`proposalStatus` are absent from the schema's
-// `required` list. `proposalStatus`는 스키마 설명대로 관리자 목록 조회에서만 채워진다.
+// `reporterName`/`detailReason`/`reviewedAt`/`proposalStatus` are absent from the
+// schema's `required` list. `reporterName`은 스키마 설명대로 관리자 조회에서만
+// 채워지고 탈퇴한 사용자는 null이며, `proposalStatus`는 관리자 목록 조회에서만 채워진다.
 export interface ProposalReportResponse {
   id: number
   proposalId: number
   reporterId: string
+  reporterName?: string | null
   reasonQuestionId: number
   reasonQuestionText: string
   detailReason?: string | null

@@ -15,6 +15,7 @@ import {
   toRequestStatusLabel,
 } from '../../domain/status/statusLabel'
 import { formatDateTime } from '../components/formatters'
+import { optionalText } from './optionalText'
 import type {
   DisputeRow,
   MissionRow,
@@ -26,13 +27,15 @@ import type {
 
 /**
  * 서버 DTO → 표 view-model 변환 경계. 이름 있는 이 한 곳에서만 변환한다.
- * 이름이 없는 응답(`*Name`은 스펙상 nullable)은 ID로 대체해 빈 칸을 만들지 않는다.
+ * 이름(`*Name`은 스펙상 nullable)과 ID를 여기서 합치지 않고 따로 실어 보낸다.
+ * 이름이 없을 때 무엇을 대신 그릴지는 표현의 문제이므로 `ActorName`이 정한다.
  */
 
 export function toRequestRowFromApi(dto: AdminProposalSummaryResponse): RequestRow {
   return {
     proposalId: String(dto.id),
-    hyungnimName: dto.ordererName ?? dto.ordererId,
+    hyungnimName: optionalText(dto.ordererName),
+    hyungnimId: optionalText(dto.ordererId),
     amount: dto.errandFee,
     statusLabel: toRequestStatusLabel(dto.status),
     offerCount: dto.offerCount,
@@ -44,7 +47,8 @@ export function toOfferRowFromApi(dto: AdminOfferSummaryResponse): OfferRow {
   return {
     offerId: String(dto.id),
     proposalId: String(dto.proposalId),
-    kkobungName: dto.runnerName ?? dto.runnerId,
+    kkobungName: optionalText(dto.runnerName),
+    kkobungId: optionalText(dto.runnerId),
     amount: dto.amount,
     statusLabel: toOfferStatusLabel(dto.status),
     selected: dto.accepted,
@@ -53,21 +57,21 @@ export function toOfferRowFromApi(dto: AdminOfferSummaryResponse): OfferRow {
 }
 
 /**
- * `MissionResponse`에는 행님·꼬붕 이름도 오픈채팅방 URL도 없다(스펙 확인).
- * 없는 값을 만들어내지 않고 ID만 넘겨 표가 ID 축약으로 대신 그리게 한다.
+ * `MissionResponse`의 이름과 오픈채팅방 URL은 optional/nullable이다. 비어 있으면
+ * null로 정규화하고, 이름이 없을 때는 짝 ID를 넘겨 표가 대신 그리게 한다.
  */
 export function toMissionRowFromApi(dto: MissionResponse): MissionRow {
   return {
     key: `mission-${dto.id}`,
     missionId: String(dto.id),
     proposalId: String(dto.proposalId),
-    hyungnimName: null,
-    hyungnimId: dto.ordererId,
-    kkobungName: null,
-    kkobungId: dto.runnerId,
+    hyungnimName: optionalText(dto.ordererName),
+    hyungnimId: optionalText(dto.ordererId),
+    kkobungName: optionalText(dto.runnerName),
+    kkobungId: optionalText(dto.runnerId),
     statusLabel: toMissionStatusLabel(dto.status),
     payoutStatusLabel: toMissionPayoutStatusLabel(dto.status),
-    openChatUrl: null,
+    openChatUrl: optionalText(dto.openChatUrl),
     createdAt: formatDateTime(dto.createdAt),
   }
 }
@@ -77,7 +81,8 @@ export function toDisputeRowFromApi(dto: AdminDisputeSummaryResponse): DisputeRo
     disputeId: String(dto.id),
     proposalId: String(dto.proposalId),
     offerId: String(dto.offerId),
-    requesterName: dto.requesterName ?? dto.requesterId,
+    requesterName: optionalText(dto.requesterName),
+    requesterId: optionalText(dto.requesterId),
     requesterRole: dto.requesterRole,
     statusLabel: toDisputeStatusLabel(dto.status),
     requestedAt: formatDateTime(dto.createdAt),
@@ -88,7 +93,8 @@ export function toRefundRowFromApi(dto: AdminRefundSummaryResponse): RefundRow {
   return {
     refundId: String(dto.id),
     proposalId: String(dto.proposalId),
-    hyungnimName: dto.ordererName ?? dto.ordererId,
+    hyungnimName: optionalText(dto.ordererName),
+    hyungnimId: optionalText(dto.ordererId),
     amount: dto.amount,
     requestStatusLabel: toRequestStatusLabel(dto.proposalStatus),
     statusLabel: toPayoutStatusLabel(dto.status),
@@ -110,8 +116,8 @@ export function toMissionRowFromPayout(dto: AdminPayoutSummaryResponse): Mission
     proposalId: String(dto.proposalId),
     hyungnimName: null,
     hyungnimId: null,
-    kkobungName: dto.runnerName ?? dto.runnerId,
-    kkobungId: dto.runnerId,
+    kkobungName: optionalText(dto.runnerName),
+    kkobungId: optionalText(dto.runnerId),
     statusLabel: null,
     payoutStatusLabel: toPayoutStatusLabel(dto.status),
     openChatUrl: null,
@@ -126,6 +132,7 @@ export function toReportRowFromApi(dto: ProposalReportResponse): ReportRow {
     reportId: String(dto.id),
     proposalId: String(dto.proposalId),
     reporterId: dto.reporterId,
+    reporterName: optionalText(dto.reporterName),
     reasonQuestionText: dto.reasonQuestionText,
     detailReason: dto.detailReason ?? null,
     statusLabel: toReportStatusLabel(dto.status),

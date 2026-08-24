@@ -1,5 +1,6 @@
 import { useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { ActorName } from '../../components/ActorName'
 import { DataTable } from '../../components/DataTable'
 import { FilterSelect } from '../../components/FilterSelect'
 import { PageHeader } from '../../components/PageHeader'
@@ -126,15 +127,19 @@ export function OfferListPage() {
               key: 'proposalId',
               header: '요청 ID',
               width: '120px',
-              render: (offer) => (
-                <span className="or-cell-id">요청 #{offer.proposalId}</span>
-              ),
+              render: (offer) => <span className="or-cell-id">{offer.proposalId}</span>,
             },
             {
               key: 'kkobung',
               header: '꼬붕',
               width: '110px',
-              render: (offer) => offer.kkobungName,
+              render: (offer) => (
+                <ActorName
+                  name={offer.kkobungName}
+                  id={offer.kkobungId}
+                  variant="cell"
+                />
+              ),
             },
             {
               key: 'amount',

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Button } from '../../../components/Button'
+import { ActorName } from '../../../components/ActorName'
 import { DataTable } from '../../../components/DataTable'
 import { InfoCard } from '../../../components/InfoCard'
 import { Modal } from '../../../components/Modal'
@@ -39,7 +40,13 @@ export function OfferListTab({ offers, selectedOfferId }: OfferListTabProps) {
             key: 'kkobung',
             header: '꼬붕',
             width: '110px',
-            render: (offer) => offer.kkobungName,
+            render: (offer) => (
+              <ActorName
+                name={offer.kkobungName}
+                id={offer.kkobungId}
+                variant="cell"
+              />
+            ),
           },
           {
             key: 'status',
@@ -83,7 +90,16 @@ export function OfferListTab({ offers, selectedOfferId }: OfferListTabProps) {
           <InfoCard
             items={[
               { label: '지원 ID', value: detailOffer.offerId },
-              { label: '꼬붕', value: detailOffer.kkobungName },
+              {
+                label: '꼬붕',
+                value: (
+                  <ActorName
+                    name={detailOffer.kkobungName}
+                    id={detailOffer.kkobungId}
+                    variant="plain"
+                  />
+                ),
+              },
               {
                 label: '지원 상태',
                 value: <StatusBadge label={detailOffer.statusLabel} />,

@@ -20,6 +20,7 @@ import type {
   RefundDetailView,
   RequestDetailView,
 } from './detailViews'
+import { optionalText } from './optionalText'
 
 /**
  * 서버 DTO → 요청 상세 view-model 변환 경계. 이름 있는 이 한 곳에서만 변환한다.
@@ -32,10 +33,6 @@ const CANCELLABLE_STATUSES: readonly ProposalStatus[] = ['HOLDING', 'POSTED', 'O
 
 function optionalDateTime(value: string | null | undefined): string | null {
   return value === null || value === undefined ? null : formatDateTime(value)
-}
-
-function optionalText(value: string | null | undefined): string | null {
-  return value === null || value === undefined || value.trim() === '' ? null : value
 }
 
 /** `은행 계좌번호`. 둘 중 하나라도 없으면 반쪽짜리 계좌를 만들지 않고 null이다. */
@@ -51,7 +48,8 @@ function toAccountText(
 export function toRequestDetailView(dto: AdminProposalDetailResponse): RequestDetailView {
   return {
     proposalId: String(dto.id),
-    hyungnimName: dto.ordererName ?? dto.ordererId,
+    hyungnimName: optionalText(dto.ordererName),
+    hyungnimId: optionalText(dto.ordererId),
     amount: dto.errandFee,
     statusLabel: toRequestStatusLabel(dto.status),
     createdAt: formatDateTime(dto.createdAt),
@@ -78,10 +76,11 @@ export function toMissionDetailView(dto: MissionResponse): MissionDetailView {
     missionId: String(dto.id),
     proposalId: String(dto.proposalId),
     offerId: String(dto.offerId),
-    hyungnimName: null,
-    hyungnimId: dto.ordererId,
-    kkobungName: null,
-    kkobungId: dto.runnerId,
+    hyungnimName: optionalText(dto.ordererName),
+    hyungnimId: optionalText(dto.ordererId),
+    kkobungName: optionalText(dto.runnerName),
+    kkobungId: optionalText(dto.runnerId),
+    openChatUrl: optionalText(dto.openChatUrl),
     statusLabel: toMissionStatusLabel(dto.status),
     payoutStatusLabel: toMissionPayoutStatusLabel(dto.status),
     payoutRequired: dto.status === 'COMPLETED',
@@ -107,9 +106,11 @@ export function toDisputeDetailView(
     offerId: String(dto.offerId),
     missionId:
       dto.missionId === null || dto.missionId === undefined ? null : String(dto.missionId),
-    requesterName: dto.requesterName ?? dto.requesterId,
+    requesterName: optionalText(dto.requesterName),
+    requesterId: optionalText(dto.requesterId),
     requesterRole: dto.requesterRole,
-    targetName: dto.targetName ?? dto.targetId,
+    targetName: optionalText(dto.targetName),
+    targetId: optionalText(dto.targetId),
     targetRole: dto.targetRole,
     reason: dto.reason,
     statusLabel: toDisputeStatusLabel(dto.status),
@@ -145,7 +146,8 @@ export function toPayoutDetailView(dto: AdminPayoutDetailResponse): PayoutDetail
     payoutId: String(dto.id),
     proposalId: String(dto.proposalId),
     offerId: String(dto.offerId),
-    kkobungName: dto.runnerName ?? dto.runnerId,
+    kkobungName: optionalText(dto.runnerName),
+    kkobungId: optionalText(dto.runnerId),
     amount: dto.amount,
     statusLabel: toPayoutStatusLabel(dto.status),
     pending: dto.status === 'PENDING',

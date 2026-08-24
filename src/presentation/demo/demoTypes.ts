@@ -128,6 +128,7 @@ export interface DemoProposalReport {
   targetType: 'Proposal'
   proposalId: string
   reporterId: string
+  reporterName: string
   reasonQuestionText: string
   detailReason?: string
   reportedAt: string

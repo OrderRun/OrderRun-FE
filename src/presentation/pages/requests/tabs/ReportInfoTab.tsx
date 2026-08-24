@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ActorName } from '../../../components/ActorName'
 import { Button } from '../../../components/Button'
 import { ConfirmModal } from '../../../components/ConfirmModal'
 import { DataTable } from '../../../components/DataTable'
@@ -57,10 +58,16 @@ export function ReportInfoTab({
             ),
           },
           {
-            key: 'reporterId',
+            key: 'reporter',
             header: '신고자',
             width: '100px',
-            render: (report) => report.reporterId,
+            render: (report) => (
+              <ActorName
+                name={report.reporterName}
+                id={report.reporterId}
+                variant="cell"
+              />
+            ),
           },
           {
             key: 'reason',
@@ -129,6 +136,12 @@ export function ReportInfoTab({
                   label: '처리 상태',
                   value: (
                     <StatusBadge label={detailReport.statusLabel} shape="pill" />
+                  ),
+                },
+                {
+                  label: '신고자',
+                  value: detailReport.reporterName ?? (
+                    <span className="or-flag-off">해당 없음</span>
                   ),
                 },
                 { label: '신고자 ID', value: detailReport.reporterId },

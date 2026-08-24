@@ -46,7 +46,7 @@ export function ReportListPage() {
             <SearchInput
               label="검색"
               value={keyword}
-              placeholder="신고 ID, Proposal ID, 신고자 또는 내용으로 검색"
+              placeholder="신고 ID, 요청 ID, 신고자 또는 내용으로 검색"
               onChange={(value) => setMany([['q', value], ['page', '1']])}
             />
             <FilterSelect

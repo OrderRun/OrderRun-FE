@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
+import { ActorName } from '../../components/ActorName'
 import { Button } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
 import { InfoCard } from '../../components/InfoCard'
@@ -273,7 +274,16 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
       <InfoCard
         title="기본 정보"
         items={[
-          { label: '행님', value: request.hyungnimName },
+          {
+            label: '행님',
+            value: (
+              <ActorName
+                name={request.hyungnimName}
+                id={request.hyungnimId}
+                variant="plain"
+              />
+            ),
+          },
           { label: '요청 생성일', value: request.createdAt },
           {
             label: '요청 상태',
@@ -346,7 +356,7 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
               <MissionInfoTab
                 mission={mission}
                 payout={payoutQuery.data ?? null}
-                openChatUrl={request.openChatUrl}
+                openChatUrl={mission?.openChatUrl ?? null}
                 requestStatusLabel={request.statusLabel}
                 action={payoutAction}
                 onPayout={(note) => runPayout(note, false)}

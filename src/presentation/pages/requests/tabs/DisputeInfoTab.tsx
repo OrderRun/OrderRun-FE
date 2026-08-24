@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { ActorName } from '../../../components/ActorName'
 import { Button } from '../../../components/Button'
 import { EmptyState } from '../../../components/EmptyState'
 import { InfoCard } from '../../../components/InfoCard'
 import { StatusBadge } from '../../../components/StatusBadge'
+import { toActorRoleLabel } from '../../../../domain/actor/roleLabel'
 import type { MissionResolution } from '../../../../domain/status/missionStatus'
 import type { ActionState, DisputeDetailView } from '../../../models/detailViews'
 import { DisputeResolveModal } from '../../disputes/modals/DisputeResolveModal'
@@ -82,9 +84,16 @@ export function DisputeInfoTab({
             newRow: true,
             value: (
               <>
-                {dispute.requesterName}
+                <ActorName
+                  name={dispute.requesterName}
+                  id={dispute.requesterId}
+                  variant="plain"
+                />
                 <span className="or-role-tag">
-                  <StatusBadge label={dispute.requesterRole} shape="pill" />
+                  <StatusBadge
+                    label={toActorRoleLabel(dispute.requesterRole)}
+                    shape="pill"
+                  />
                 </span>
               </>
             ),
@@ -93,9 +102,16 @@ export function DisputeInfoTab({
             label: '신청 대상',
             value: (
               <>
-                {dispute.targetName}
+                <ActorName
+                  name={dispute.targetName}
+                  id={dispute.targetId}
+                  variant="plain"
+                />
                 <span className="or-role-tag">
-                  <StatusBadge label={dispute.targetRole} shape="pill" />
+                  <StatusBadge
+                    label={toActorRoleLabel(dispute.targetRole)}
+                    shape="pill"
+                  />
                 </span>
               </>
             ),

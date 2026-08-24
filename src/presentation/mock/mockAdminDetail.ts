@@ -47,6 +47,8 @@ export const mockDetail = {
     return {
       proposalId: request.proposalId,
       hyungnimName: request.hyungnimName,
+      // 목 원천에는 행위자 UUID가 없다. 없는 값을 만들지 않고 null로 둔다.
+      hyungnimId: null,
       amount: request.amount,
       statusLabel: request.status,
       createdAt: request.createdAt,
@@ -82,6 +84,7 @@ export const mockDetail = {
       hyungnimId: null,
       kkobungName: mission.kkobungName,
       kkobungId: null,
+      openChatUrl: mission.openChatUrl,
       statusLabel: mission.status,
       payoutStatusLabel:
         mission.status === '완료' ? mission.settlementStatus : null,
@@ -113,8 +116,10 @@ export const mockDetail = {
       offerId: dispute.offerId,
       missionId: dispute.missionId,
       requesterName: dispute.requesterName,
+      requesterId: null,
       requesterRole: dispute.requesterRole,
       targetName: dispute.targetName,
+      targetId: null,
       targetRole: dispute.targetRole,
       reason: dispute.reason,
       statusLabel: dispute.status,
@@ -159,6 +164,7 @@ export const mockDetail = {
       proposalId: mission.proposalId,
       offerId: mission.offerId,
       kkobungName: mission.kkobungName,
+      kkobungId: null,
       amount: mission.payoutAmount,
       statusLabel: mission.settlementStatus,
       pending: mission.settlementStatus === '미처리',

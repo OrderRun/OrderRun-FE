@@ -3,13 +3,15 @@
  * 응답 두 원천이 같은 화면을 채우므로, 화면 컴포넌트는 어느 원천도 직접 알지
  * 않고 이 모델만 본다. 상태 라벨은 Domain `statusLabel.ts`가 정한 문자열이다.
  *
- * 서버가 내려주지 않는 값(미션 응답의 행님·꼬붕 이름 등)은 만들어내지 않고
- * ID 또는 null로 둔다. 화면은 null을 '해당 없음'으로 그린다.
+ * 서버 응답에서 생략되거나 null인 값은 만들어내지 않고 ID 또는 null로 둔다.
+ * 화면은 null을 '해당 없음'으로 그린다.
  */
 
 export interface RequestDetailView {
   proposalId: string
-  hyungnimName: string
+  hyungnimName: string | null
+  /** 이름이 없을 때(탈퇴한 사용자 등) 화면이 대신 그릴 ID. 없으면 null. */
+  hyungnimId: string | null
   amount: number
   statusLabel: string
   createdAt: string
@@ -36,11 +38,12 @@ export interface MissionDetailView {
   missionId: string
   proposalId: string
   offerId: string
-  /** `MissionResponse`에는 이름이 없다. 없으면 null이고 화면이 ID로 대신 그린다. */
+  /** `MissionResponse`의 이름은 nullable이다. 없으면 null이고 화면이 ID로 대신 그린다. */
   hyungnimName: string | null
   hyungnimId: string | null
   kkobungName: string | null
   kkobungId: string | null
+  openChatUrl: string | null
   statusLabel: string
   /** 수행비 처리 여부 라벨. 지급 대상이 아니면 null. */
   payoutStatusLabel: string | null
@@ -64,9 +67,13 @@ export interface DisputeDetailView {
   proposalId: string
   offerId: string
   missionId: string | null
-  requesterName: string
+  requesterName: string | null
+  /** 이름이 없을 때(탈퇴한 사용자 등) 화면이 대신 그릴 ID. 없으면 null. */
+  requesterId: string | null
   requesterRole: string
-  targetName: string
+  targetName: string | null
+  /** 이름이 없을 때(탈퇴한 사용자 등) 화면이 대신 그릴 ID. 없으면 null. */
+  targetId: string | null
   targetRole: string
   reason: string
   statusLabel: string
@@ -102,7 +109,9 @@ export interface PayoutDetailView {
   payoutId: string
   proposalId: string
   offerId: string
-  kkobungName: string
+  kkobungName: string | null
+  /** 이름이 없을 때(탈퇴한 사용자 등) 화면이 대신 그릴 ID. 없으면 null. */
+  kkobungId: string | null
   amount: number
   statusLabel: string
   pending: boolean

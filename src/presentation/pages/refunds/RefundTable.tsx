@@ -1,3 +1,4 @@
+import { ActorName } from '../../components/ActorName'
 import { DataTable } from '../../components/DataTable'
 import { StatusBadge } from '../../components/StatusBadge'
 import { formatAmount } from '../../components/formatters'
@@ -35,7 +36,9 @@ export function RefundTable({
           key: 'hyungnim',
           header: '행님',
           width: '100px',
-          render: (row) => row.hyungnimName,
+          render: (row) => (
+            <ActorName name={row.hyungnimName} id={row.hyungnimId} variant="cell" />
+          ),
         },
         {
           key: 'amount',

@@ -20,7 +20,9 @@ export interface RowPage<T> {
 
 export interface RequestRow {
   proposalId: string
-  hyungnimName: string
+  hyungnimName: string | null
+  /** 이름이 없을 때(탈퇴한 사용자 등) 표가 대신 그릴 ID. 없으면 null. */
+  hyungnimId: string | null
   amount: number
   statusLabel: string
   offerCount: number
@@ -31,7 +33,9 @@ export interface DisputeRow {
   disputeId: string
   proposalId: string
   offerId: string
-  requesterName: string
+  requesterName: string | null
+  /** 이름이 없을 때(탈퇴한 사용자 등) 표가 대신 그릴 ID. 없으면 null. */
+  requesterId: string | null
   /** 서버 계약상 자유 string이라 union으로 좁히지 않는다. */
   requesterRole: string
   statusLabel: string
@@ -41,7 +45,9 @@ export interface DisputeRow {
 export interface RefundRow {
   refundId: string
   proposalId: string
-  hyungnimName: string
+  hyungnimName: string | null
+  /** 이름이 없을 때(탈퇴한 사용자 등) 표가 대신 그릴 ID. 없으면 null. */
+  hyungnimId: string | null
   amount: number
   /** 대상 요청의 상태 라벨. 알 수 없으면 null이며 표는 '해당 없음'을 그린다. */
   requestStatusLabel: string | null
@@ -53,7 +59,9 @@ export interface RefundRow {
 export interface OfferRow {
   offerId: string
   proposalId: string
-  kkobungName: string
+  kkobungName: string | null
+  /** 이름이 없을 때(탈퇴한 사용자 등) 표가 대신 그릴 ID. 없으면 null. */
+  kkobungId: string | null
   amount: number
   statusLabel: string
   selected: boolean
@@ -66,7 +74,7 @@ export interface MissionRow {
   missionId: string | null
   proposalId: string
   hyungnimName: string | null
-  /** 이름이 없는 원천(미션 응답)에서 표가 대신 그릴 ID. 없으면 null. */
+  /** 이름이 없을 때(탈퇴한 사용자 등) 표가 대신 그릴 ID. 없으면 null. */
   hyungnimId: string | null
   kkobungName: string | null
   kkobungId: string | null
@@ -82,6 +90,8 @@ export interface ReportRow {
   reportId: string
   proposalId: string
   reporterId: string
+  /** 신고자 이름. 없으면(탈퇴한 사용자 등) 표가 축약 ID로 대신 그린다. */
+  reporterName: string | null
   reasonQuestionText: string
   detailReason: string | null
   statusLabel: string

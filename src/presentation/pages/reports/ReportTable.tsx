@@ -1,3 +1,4 @@
+import { ActorName } from '../../components/ActorName'
 import { DataTable } from '../../components/DataTable'
 import { StatusBadge } from '../../components/StatusBadge'
 import type { ReportRow } from '../../models/rows'
@@ -32,15 +33,21 @@ export function ReportTable({
         },
         {
           key: 'target',
-          header: '신고 대상',
+          header: '신고한 요청 ID',
           width: '125px',
-          render: (row) => <span className="or-cell-id">요청 #{row.proposalId}</span>,
+          render: (row) => <span className="or-cell-id">{row.proposalId}</span>,
         },
         {
-          key: 'reporterId',
-          header: '신고자 ID',
+          key: 'reporter',
+          header: '신고자',
           width: '105px',
-          render: (row) => row.reporterId,
+          render: (row) => (
+            <ActorName
+              name={row.reporterName}
+              id={row.reporterId}
+              variant="cell"
+            />
+          ),
         },
         {
           key: 'reason',

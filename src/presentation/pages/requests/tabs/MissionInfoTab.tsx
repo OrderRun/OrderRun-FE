@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ActorName } from '../../../components/ActorName'
 import { Button } from '../../../components/Button'
 import { EmptyState } from '../../../components/EmptyState'
 import { InfoCard } from '../../../components/InfoCard'
@@ -7,7 +8,6 @@ import {
   canCopyToClipboard,
   copyToClipboard,
   formatAmount,
-  formatShortId,
 } from '../../../components/formatters'
 import type {
   ActionState,
@@ -20,7 +20,7 @@ interface MissionInfoTabProps {
   mission: MissionDetailView | null
   /** 수행비 지급 상세. 대상이 아니거나 기록이 없으면 null이다. */
   payout: PayoutDetailView | null
-  /** 미션의 오픈채팅방 URL은 요청 상세가 들고 있다. */
+  /** 미션 상세 응답에서 가져온 오픈채팅방 URL. */
   openChatUrl: string | null
   requestStatusLabel: string
   action: ActionState
@@ -30,17 +30,6 @@ interface MissionInfoTabProps {
    */
   onPayout: (adminNote: string) => Promise<void>
   onPayoutReject: (adminNote: string) => Promise<void>
-}
-
-/** 이름이 없는 응답(미션)에서 ID로 대신 그린다. 없는 이름을 만들지 않는다. */
-function personValue(name: string | null, id: string | null) {
-  if (name !== null) {
-    return name
-  }
-  if (id !== null) {
-    return <span title={id}>{formatShortId(id)}</span>
-  }
-  return <span className="or-flag-off">해당 없음</span>
 }
 
 export function MissionInfoTab({
@@ -106,11 +95,29 @@ export function MissionInfoTab({
             label: '상태',
             value: <StatusBadge label={mission.statusLabel} />,
           },
-          { label: '행님', value: personValue(mission.hyungnimName, mission.hyungnimId) },
-          { label: '꼬붕', value: personValue(mission.kkobungName, mission.kkobungId) },
+          {
+            label: '행님',
+            value: (
+              <ActorName
+                name={mission.hyungnimName}
+                id={mission.hyungnimId}
+                variant="plain"
+              />
+            ),
+          },
+          {
+            label: '꼬붕',
+            value: (
+              <ActorName
+                name={mission.kkobungName}
+                id={mission.kkobungId}
+                variant="plain"
+              />
+            ),
+          },
           {
             label: '연결된 요청',
-            value: `요청 #${mission.proposalId}`,
+            value: mission.proposalId,
             newRow: true,
           },
           { label: '선택된 지원', value: `지원 #${mission.offerId}` },

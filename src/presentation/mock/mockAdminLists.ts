@@ -147,6 +147,7 @@ export const mockLists = {
           report.reportId,
           report.proposalId,
           report.reporterId,
+          report.reporterName,
           report.reasonQuestionText,
           report.detailReason ?? null,
         ]),
