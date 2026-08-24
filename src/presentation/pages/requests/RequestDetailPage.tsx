@@ -290,18 +290,24 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
             value: <StatusBadge label={request.statusLabel} />,
           },
           { label: '요청 금액', value: formatAmount(request.amount) },
+        ]}
+      />
+
+      <InfoCard
+        title="추가 정보"
+        items={[
           {
-            label: '선택된 지원',
-            value:
-              request.acceptedOfferId === null ? (
-                <span className="or-flag-off">아직 선택된 지원이 없습니다.</span>
-              ) : (
-                `지원 #${request.acceptedOfferId}${
-                  request.acceptedRunnerName === null
-                    ? ''
-                    : ` · ${request.acceptedRunnerName}`
-                }`
-              ),
+            label: '요청 제목',
+            value: request.title ?? <span className="or-flag-off">해당 없음</span>,
+          },
+          {
+            label: '마감 기한',
+            value: request.deadline ?? <span className="or-flag-off">해당 없음</span>,
+          },
+          {
+            label: '요청 내용',
+            value: request.content ?? <span className="or-flag-off">해당 없음</span>,
+            newRow: true,
           },
         ]}
       />

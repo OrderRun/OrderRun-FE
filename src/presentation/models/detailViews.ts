@@ -15,10 +15,13 @@ export interface RequestDetailView {
   amount: number
   statusLabel: string
   createdAt: string
+  /** 목 원천에는 요청 본문 정보가 없어 null이다. */
+  title: string | null
+  content: string | null
+  deadline: string | null
   /** 미션의 오픈채팅방 URL. 서버 상세는 요청에 이 값을 싣는다. */
   openChatUrl: string | null
   acceptedOfferId: string | null
-  acceptedRunnerName: string | null
   /** 환불·지급 탭의 리소스 ID이기도 하다(서버 규약: refundId = payoutId = 미션 ID). */
   missionId: number | null
   adminNote: string | null

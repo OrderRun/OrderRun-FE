@@ -52,9 +52,12 @@ export const mockDetail = {
       amount: request.amount,
       statusLabel: request.status,
       createdAt: request.createdAt,
+      // 목 요청에는 서버 상세의 본문 정보가 없다. 임의 값을 만들지 않는다.
+      title: null,
+      content: null,
+      deadline: null,
       openChatUrl: mission?.openChatUrl ?? null,
       acceptedOfferId: selected?.offerId ?? null,
-      acceptedRunnerName: selected?.kkobungName ?? null,
       missionId: null,
       adminNote: null,
       depositorName: request.depositorName,

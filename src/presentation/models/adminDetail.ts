@@ -52,12 +52,14 @@ export function toRequestDetailView(dto: AdminProposalDetailResponse): RequestDe
     amount: dto.errandFee,
     statusLabel: toRequestStatusLabel(dto.status),
     createdAt: formatDateTime(dto.createdAt),
+    title: dto.title,
+    content: dto.content,
+    deadline: formatDateTime(dto.deadline),
     openChatUrl: optionalText(dto.openChatUrl),
     acceptedOfferId:
       dto.acceptedOfferId === null || dto.acceptedOfferId === undefined
         ? null
         : String(dto.acceptedOfferId),
-    acceptedRunnerName: optionalText(dto.acceptedRunnerName),
     missionId: dto.missionId ?? null,
     adminNote: optionalText(dto.adminNote),
     depositorName: optionalText(dto.depositorName),
