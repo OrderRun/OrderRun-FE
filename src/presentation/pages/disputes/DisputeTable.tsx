@@ -1,4 +1,3 @@
-import { ActorName } from '../../components/ActorName'
 import { DataTable } from '../../components/DataTable'
 import { StatusBadge } from '../../components/StatusBadge'
 import { toActorRoleLabel } from '../../../domain/actor/roleLabel'
@@ -48,9 +47,7 @@ export function DisputeTable({
           key: 'requester',
           header: '신청자',
           width: '120px',
-          render: (row) => (
-            <ActorName name={row.requesterName} id={row.requesterId} variant="cell" />
-          ),
+          render: (row) => row.requesterName,
         },
         {
           key: 'requesterRole',

@@ -16,14 +16,6 @@ export function formatCount(count: number): string {
   return `${count.toLocaleString('ko-KR')}건`
 }
 
-/**
- * UUID 같은 긴 ID를 표 칸에 넣기 위해 앞부분만 보여준다. 잘린 값을 진짜 ID로
- * 오해하지 않도록 호출부는 `title`에 전체 값을 함께 건다.
- */
-export function formatShortId(id: string): string {
-  return id.length <= 8 ? id : `${id.slice(0, 8)}…`
-}
-
 export function canCopyToClipboard(): boolean {
   return (
     typeof navigator !== 'undefined' && navigator.clipboard !== undefined

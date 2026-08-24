@@ -1,4 +1,3 @@
-import { ActorName } from '../../components/ActorName'
 import { DataTable } from '../../components/DataTable'
 import { StatusBadge } from '../../components/StatusBadge'
 import type { ReportRow } from '../../models/rows'
@@ -41,13 +40,7 @@ export function ReportTable({
           key: 'reporter',
           header: '신고자',
           width: '105px',
-          render: (row) => (
-            <ActorName
-              name={row.reporterName}
-              id={row.reporterId}
-              variant="cell"
-            />
-          ),
+          render: (row) => row.reporterName,
         },
         {
           key: 'reason',

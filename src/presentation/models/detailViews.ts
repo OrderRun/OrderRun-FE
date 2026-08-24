@@ -3,15 +3,13 @@
  * 응답 두 원천이 같은 화면을 채우므로, 화면 컴포넌트는 어느 원천도 직접 알지
  * 않고 이 모델만 본다. 상태 라벨은 Domain `statusLabel.ts`가 정한 문자열이다.
  *
- * 서버 응답에서 생략되거나 null인 값은 만들어내지 않고 ID 또는 null로 둔다.
+ * 서버 응답에서 생략되거나 null인 값은 만들어내지 않고 null로 둔다.
  * 화면은 null을 '해당 없음'으로 그린다.
  */
 
 export interface RequestDetailView {
   proposalId: string
   hyungnimName: string
-  /** 원본 행위자 ID. 목 원천에서는 null이다. */
-  hyungnimId: string | null
   amount: number
   statusLabel: string
   createdAt: string
@@ -43,9 +41,7 @@ export interface MissionDetailView {
   offerId: string
   /** 서버가 보장하는 관리자 표시용 이름. */
   hyungnimName: string
-  hyungnimId: string | null
   kkobungName: string
-  kkobungId: string | null
   openChatUrl: string | null
   statusLabel: string
   /** 수행비 처리 여부 라벨. 목 원천에서 알 수 없을 때만 null. */
@@ -71,12 +67,8 @@ export interface DisputeDetailView {
   offerId: string
   missionId: string | null
   requesterName: string
-  /** 원본 행위자 ID. 목 원천에서는 null이다. */
-  requesterId: string | null
   requesterRole: string
   targetName: string
-  /** 원본 행위자 ID. 목 원천에서는 null이다. */
-  targetId: string | null
   targetRole: string
   reason: string
   statusLabel: string
@@ -113,8 +105,6 @@ export interface PayoutDetailView {
   proposalId: string
   offerId: string
   kkobungName: string
-  /** 원본 행위자 ID. 목 원천에서는 null이다. */
-  kkobungId: string | null
   amount: number
   statusLabel: string
   pending: boolean

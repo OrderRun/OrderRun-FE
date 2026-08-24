@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { ActorName } from '../../../components/ActorName'
 import { Button } from '../../../components/Button'
 import { EmptyState } from '../../../components/EmptyState'
 import { InfoCard } from '../../../components/InfoCard'
@@ -84,11 +83,7 @@ export function DisputeInfoTab({
             newRow: true,
             value: (
               <>
-                <ActorName
-                  name={dispute.requesterName}
-                  id={dispute.requesterId}
-                  variant="plain"
-                />
+                {dispute.requesterName}
                 <span className="or-role-tag">
                   <StatusBadge
                     label={toActorRoleLabel(dispute.requesterRole)}
@@ -102,11 +97,7 @@ export function DisputeInfoTab({
             label: '신청 대상',
             value: (
               <>
-                <ActorName
-                  name={dispute.targetName}
-                  id={dispute.targetId}
-                  variant="plain"
-                />
+                {dispute.targetName}
                 <span className="or-role-tag">
                   <StatusBadge
                     label={toActorRoleLabel(dispute.targetRole)}

@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { ActorName } from '../../components/ActorName'
 import { Button } from '../../components/Button'
 import { DataTable } from '../../components/DataTable'
 import { StatusBadge } from '../../components/StatusBadge'
@@ -54,17 +53,13 @@ export function MissionTable({
           key: 'hyungnim',
           header: '행님',
           width: '100px',
-          render: (row) => (
-            <ActorName name={row.hyungnimName} id={row.hyungnimId} variant="cell" />
-          ),
+          render: (row) => row.hyungnimName,
         },
         {
           key: 'kkobung',
           header: '꼬붕',
           width: '100px',
-          render: (row) => (
-            <ActorName name={row.kkobungName} id={row.kkobungId} variant="cell" />
-          ),
+          render: (row) => row.kkobungName,
         },
         {
           key: 'status',

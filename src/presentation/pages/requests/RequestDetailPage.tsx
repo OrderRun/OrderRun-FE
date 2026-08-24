@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { Link, useLocation, useParams, useSearchParams } from 'react-router-dom'
-import { ActorName } from '../../components/ActorName'
 import { Button } from '../../components/Button'
 import { EmptyState } from '../../components/EmptyState'
 import { InfoCard } from '../../components/InfoCard'
@@ -274,16 +273,7 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
       <InfoCard
         title="기본 정보"
         items={[
-          {
-            label: '행님',
-            value: (
-              <ActorName
-                name={request.hyungnimName}
-                id={request.hyungnimId}
-                variant="plain"
-              />
-            ),
-          },
+          { label: '행님', value: request.hyungnimName },
           { label: '요청 생성일', value: request.createdAt },
           {
             label: '요청 상태',

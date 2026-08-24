@@ -1,6 +1,5 @@
 import { useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ActorName } from '../../components/ActorName'
 import { DataTable } from '../../components/DataTable'
 import { FilterSelect } from '../../components/FilterSelect'
 import { PageHeader } from '../../components/PageHeader'
@@ -133,13 +132,7 @@ export function OfferListPage() {
               key: 'kkobung',
               header: '꼬붕',
               width: '110px',
-              render: (offer) => (
-                <ActorName
-                  name={offer.kkobungName}
-                  id={offer.kkobungId}
-                  variant="cell"
-                />
-              ),
+              render: (offer) => offer.kkobungName,
             },
             {
               key: 'amount',

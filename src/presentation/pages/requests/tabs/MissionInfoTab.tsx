@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { ActorName } from '../../../components/ActorName'
 import { Button } from '../../../components/Button'
 import { EmptyState } from '../../../components/EmptyState'
 import { InfoCard } from '../../../components/InfoCard'
@@ -95,26 +94,8 @@ export function MissionInfoTab({
             label: '상태',
             value: <StatusBadge label={mission.statusLabel} />,
           },
-          {
-            label: '행님',
-            value: (
-              <ActorName
-                name={mission.hyungnimName}
-                id={mission.hyungnimId}
-                variant="plain"
-              />
-            ),
-          },
-          {
-            label: '꼬붕',
-            value: (
-              <ActorName
-                name={mission.kkobungName}
-                id={mission.kkobungId}
-                variant="plain"
-              />
-            ),
-          },
+          { label: '행님', value: mission.hyungnimName },
+          { label: '꼬붕', value: mission.kkobungName },
           {
             label: '연결된 요청',
             value: mission.proposalId,

@@ -21,8 +21,6 @@ export interface RowPage<T> {
 export interface RequestRow {
   proposalId: string
   hyungnimName: string
-  /** 원본 행위자 ID. 목 원천에서는 null이다. */
-  hyungnimId: string | null
   amount: number
   statusLabel: string
   offerCount: number
@@ -34,8 +32,6 @@ export interface DisputeRow {
   proposalId: string
   offerId: string
   requesterName: string
-  /** 원본 행위자 ID. 목 원천에서는 null이다. */
-  requesterId: string | null
   /** 서버 계약상 자유 string이라 union으로 좁히지 않는다. */
   requesterRole: string
   statusLabel: string
@@ -46,8 +42,6 @@ export interface RefundRow {
   refundId: string
   proposalId: string
   hyungnimName: string
-  /** 원본 행위자 ID. 목 원천에서는 null이다. */
-  hyungnimId: string | null
   amount: number
   /** 대상 요청의 상태 라벨. 알 수 없으면 null이며 표는 '해당 없음'을 그린다. */
   requestStatusLabel: string | null
@@ -60,8 +54,6 @@ export interface OfferRow {
   offerId: string
   proposalId: string
   kkobungName: string
-  /** 원본 행위자 ID. 목 원천에서는 null이다. */
-  kkobungId: string | null
   amount: number
   statusLabel: string
   selected: boolean
@@ -74,10 +66,7 @@ export interface MissionRow {
   missionId: string | null
   proposalId: string
   hyungnimName: string
-  /** 원본 행위자 ID. 목 원천에서는 null이다. */
-  hyungnimId: string | null
   kkobungName: string
-  kkobungId: string | null
   /** 미션 진행 상태 라벨. 목 원천에서 알 수 없을 때만 null이다. */
   statusLabel: string | null
   /** 수행비 처리 여부 라벨. 처리 대상이 아니면 null이다. */
