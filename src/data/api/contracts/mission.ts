@@ -15,7 +15,6 @@ export interface MissionResponse {
   errandFee: number
   settlementPaid: boolean
   settlementStatus: PayoutStatus
-  refunded: boolean
   resolution?: MissionResolution | null
   startedAt: string
   runnerConfirmedAt?: string | null
@@ -27,8 +26,6 @@ export interface MissionResponse {
   resolvedByAdminId?: string | null
   settlementPaidAt?: string | null
   settlementPaidByAdminId?: string | null
-  refundedAt?: string | null
-  refundedByAdminId?: string | null
   payoutMemo?: string | null
   createdAt: string
 }

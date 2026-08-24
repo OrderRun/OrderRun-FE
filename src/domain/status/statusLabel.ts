@@ -23,7 +23,8 @@ const REQUEST_STATUS_LABELS: Record<ProposalStatus, string> = {
   DISPUTED: '분쟁중',
   CANCELLED: '취소',
   // TODO: 추후 완료·취소로 분화
-  RESOLVED: '취소',
+  REFUND_PENDING: '취소',
+  REFUNDED: '취소',
   REPORTED: '취소',
 }
 
@@ -37,8 +38,7 @@ const OFFER_STATUS_LABELS: Record<OfferStatus, string> = {
   RUNNER_COMPLETED: '진행중',
   ALL_COMPLETED: '완료',
   DISPUTED: '분쟁중',
-  // 지원 화면의 상태 옵션에 '반려'가 없어 종료 계열 3값을 '취소'로 접는다.
-  RESOLVED: '취소',
+  // 지원 화면의 상태 옵션에 '반려'가 없어 종료 계열 2값을 '취소'로 접는다.
   REJECTED: '취소',
   CANCELLED: '취소',
 }

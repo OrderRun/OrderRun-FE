@@ -6,7 +6,6 @@ export const OFFER_STATUSES = [
   'RUNNER_COMPLETED',
   'ALL_COMPLETED',
   'DISPUTED',
-  'RESOLVED',
   'REJECTED',
   'CANCELLED',
 ] as const

@@ -6,7 +6,6 @@ export const MISSION_STATUSES = [
   'COMPLETED',
   'PAID',
   'FAILED',
-  'REFUNDED',
 ] as const
 
 export type MissionStatus = (typeof MISSION_STATUSES)[number]
