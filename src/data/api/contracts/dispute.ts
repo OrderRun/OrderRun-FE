@@ -9,9 +9,9 @@ export interface AdminDisputeSummaryResponse {
   id: number
   proposalId: number
   offerId: number
-  missionId?: number | null
+  missionId: number
   requesterId: string
-  requesterName?: string | null
+  requesterName: string
   requesterRole: string
   status: DisputeProcessStatus
   createdAt: string
@@ -20,7 +20,7 @@ export interface AdminDisputeSummaryResponse {
 // Verbatim from `components.schemas.AdminDisputeDetailResponse`.
 export interface AdminDisputeDetailResponse extends AdminDisputeSummaryResponse {
   targetId: string
-  targetName?: string | null
+  targetName: string
   targetRole: string
   surveyQuestionId: number
   reason: string

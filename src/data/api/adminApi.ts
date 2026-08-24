@@ -15,12 +15,12 @@ import type {
 import type { AdminOfferSummaryResponse } from './contracts/offer'
 import type {
   AdminConfirmPaymentRequest,
+  AdminProposalResponse,
   AdminProposalDetailResponse,
   AdminProposalSummaryResponse,
-  ProposalResponse,
 } from './contracts/proposal'
-import type { ProposalReportResponse } from './contracts/proposalReport'
-import type { AdminPayoutDetailResponse, AdminPayoutSummaryResponse } from './contracts/payout'
+import type { AdminProposalReportResponse } from './contracts/proposalReport'
+import type { AdminPayoutDetailResponse } from './contracts/payout'
 import type { AdminRefundDetailResponse, AdminRefundSummaryResponse } from './contracts/refund'
 import type { AdminSummaryResponse } from './contracts/summary'
 import type { DisputeProcessStatus } from '../../domain/status/disputeStatus'
@@ -106,8 +106,8 @@ export function cancelAdminProposal(
 export function confirmProposalPayment(
   proposalId: number,
   body: AdminConfirmPaymentRequest,
-): Promise<ProposalResponse> {
-  return requestEnvelope<ProposalResponse>({
+): Promise<AdminProposalResponse> {
+  return requestEnvelope<AdminProposalResponse>({
     method: 'POST',
     path: `/v1/admin/proposal/${proposalId}/confirm-payment`,
     body,
@@ -336,8 +336,8 @@ export interface ListAdminPayoutsParams extends PageParams {
 
 export function listAdminPayouts(
   params: ListAdminPayoutsParams = {},
-): Promise<PageResponse<AdminPayoutSummaryResponse>> {
-  return requestEnvelope<PageResponse<AdminPayoutSummaryResponse>>({
+): Promise<PageResponse<MissionResponse>> {
+  return requestEnvelope<PageResponse<MissionResponse>>({
     method: 'GET',
     path: '/v1/admin/payout',
     query: {
@@ -390,8 +390,8 @@ export interface ListProposalReportsParams extends PageParams {
 
 export function listProposalReports(
   params: ListProposalReportsParams = {},
-): Promise<PageResponse<ProposalReportResponse>> {
-  return requestEnvelope<PageResponse<ProposalReportResponse>>({
+): Promise<PageResponse<AdminProposalReportResponse>> {
+  return requestEnvelope<PageResponse<AdminProposalReportResponse>>({
     method: 'GET',
     path: '/v1/admin/proposal-reports',
     query: {
@@ -404,15 +404,15 @@ export function listProposalReports(
   })
 }
 
-export function acceptProposalReport(reportId: number): Promise<ProposalReportResponse> {
-  return requestEnvelope<ProposalReportResponse>({
+export function acceptProposalReport(reportId: number): Promise<AdminProposalReportResponse> {
+  return requestEnvelope<AdminProposalReportResponse>({
     method: 'POST',
     path: `/v1/admin/proposal-reports/${reportId}/accept`,
   })
 }
 
-export function rejectProposalReport(reportId: number): Promise<ProposalReportResponse> {
-  return requestEnvelope<ProposalReportResponse>({
+export function rejectProposalReport(reportId: number): Promise<AdminProposalReportResponse> {
+  return requestEnvelope<AdminProposalReportResponse>({
     method: 'POST',
     path: `/v1/admin/proposal-reports/${reportId}/reject`,
   })

@@ -20,8 +20,8 @@ export interface RowPage<T> {
 
 export interface RequestRow {
   proposalId: string
-  hyungnimName: string | null
-  /** 이름이 없을 때(탈퇴한 사용자 등) 표가 대신 그릴 ID. 없으면 null. */
+  hyungnimName: string
+  /** 원본 행위자 ID. 목 원천에서는 null이다. */
   hyungnimId: string | null
   amount: number
   statusLabel: string
@@ -33,8 +33,8 @@ export interface DisputeRow {
   disputeId: string
   proposalId: string
   offerId: string
-  requesterName: string | null
-  /** 이름이 없을 때(탈퇴한 사용자 등) 표가 대신 그릴 ID. 없으면 null. */
+  requesterName: string
+  /** 원본 행위자 ID. 목 원천에서는 null이다. */
   requesterId: string | null
   /** 서버 계약상 자유 string이라 union으로 좁히지 않는다. */
   requesterRole: string
@@ -45,8 +45,8 @@ export interface DisputeRow {
 export interface RefundRow {
   refundId: string
   proposalId: string
-  hyungnimName: string | null
-  /** 이름이 없을 때(탈퇴한 사용자 등) 표가 대신 그릴 ID. 없으면 null. */
+  hyungnimName: string
+  /** 원본 행위자 ID. 목 원천에서는 null이다. */
   hyungnimId: string | null
   amount: number
   /** 대상 요청의 상태 라벨. 알 수 없으면 null이며 표는 '해당 없음'을 그린다. */
@@ -59,8 +59,8 @@ export interface RefundRow {
 export interface OfferRow {
   offerId: string
   proposalId: string
-  kkobungName: string | null
-  /** 이름이 없을 때(탈퇴한 사용자 등) 표가 대신 그릴 ID. 없으면 null. */
+  kkobungName: string
+  /** 원본 행위자 ID. 목 원천에서는 null이다. */
   kkobungId: string | null
   amount: number
   statusLabel: string
@@ -69,16 +69,16 @@ export interface OfferRow {
 }
 
 export interface MissionRow {
-  /** 원천에 따라 미션 ID가 없을 수 있어(수행비 지급 목록) 행 키를 따로 둔다. */
+  /** 표 행 식별자는 리소스 ID와 분리한다. */
   key: string
   missionId: string | null
   proposalId: string
-  hyungnimName: string | null
-  /** 이름이 없을 때(탈퇴한 사용자 등) 표가 대신 그릴 ID. 없으면 null. */
+  hyungnimName: string
+  /** 원본 행위자 ID. 목 원천에서는 null이다. */
   hyungnimId: string | null
-  kkobungName: string | null
+  kkobungName: string
   kkobungId: string | null
-  /** 미션 진행 상태 라벨. 지급 목록에서 온 행은 미션 상태를 알 수 없어 null이다. */
+  /** 미션 진행 상태 라벨. 목 원천에서 알 수 없을 때만 null이다. */
   statusLabel: string | null
   /** 수행비 처리 여부 라벨. 처리 대상이 아니면 null이다. */
   payoutStatusLabel: string | null
@@ -90,8 +90,8 @@ export interface ReportRow {
   reportId: string
   proposalId: string
   reporterId: string
-  /** 신고자 이름. 없으면(탈퇴한 사용자 등) 표가 축약 ID로 대신 그린다. */
-  reporterName: string | null
+  /** 서버가 보장하는 관리자 표시용 이름. */
+  reporterName: string
   reasonQuestionText: string
   detailReason: string | null
   statusLabel: string

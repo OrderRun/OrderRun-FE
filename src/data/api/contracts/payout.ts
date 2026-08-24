@@ -1,19 +1,15 @@
 import type { PayoutStatus } from '../../../domain/status/payoutStatus'
 
-// Verbatim from `components.schemas.AdminPayoutSummaryResponse`.
-export interface AdminPayoutSummaryResponse {
+// Verbatim from `components.schemas.AdminPayoutDetailResponse`.
+export interface AdminPayoutDetailResponse {
   id: number
   proposalId: number
   offerId: number
   runnerId: string
-  runnerName?: string | null
+  runnerName: string
   amount: number
   status: PayoutStatus
   settledAt?: string | null
-}
-
-// Verbatim from `components.schemas.AdminPayoutDetailResponse`.
-export interface AdminPayoutDetailResponse extends AdminPayoutSummaryResponse {
   payoutBankName?: string | null
   payoutAccountNumber?: string | null
   payoutAccountHolder?: string | null

@@ -213,7 +213,7 @@ export function useRefundDetailQuery(
   })
 }
 
-/** 서버 규약상 `payoutId`는 미션 ID다(`AdminPayoutSummaryResponse` 설명). */
+/** 서버 규약상 `payoutId`는 미션 ID다(`AdminPayoutDetailResponse` 설명). */
 export function usePayoutDetailQuery(
   proposalId: string,
   missionId: number | null,

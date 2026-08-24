@@ -8,7 +8,7 @@ export interface AdminRefundSummaryResponse {
   proposalId: number
   proposalStatus: ProposalStatus
   ordererId: string
-  ordererName?: string | null
+  ordererName: string
   amount: number
   status: PayoutStatus
   requestedAt: string

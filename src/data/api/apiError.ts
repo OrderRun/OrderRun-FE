@@ -1,5 +1,5 @@
 // Verbatim from `components.schemas.ErrorCode` in docs/api-spec/openapi.json
-// (44 values — the only codes the server can put on the wire).
+// (45 values — the only codes the server can put on the wire).
 export const ERROR_CODES = [
   'ADMIN_CREDENTIALS_INVALID',
   'DISPUTE_ALREADY_REVIEWED',
@@ -16,6 +16,7 @@ export const ERROR_CODES = [
   'MISSION_NOT_REFUNDABLE',
   'MISSION_NOT_RESOLVABLE',
   'MISSION_NOT_SETTLEABLE',
+  'SETTLEMENT_ACCOUNT_REQUIRED',
   'NOTIFICATION_NOT_FOUND',
   'NOT_FOUND',
   'OFFER_NOT_ACCEPTABLE',

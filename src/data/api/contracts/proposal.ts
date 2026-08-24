@@ -1,9 +1,9 @@
 import type { ApiResponse } from '../apiEnvelope'
 import type { ProposalStatus } from '../../../domain/status/proposalStatus'
 
-// Verbatim field list from `components.schemas.ProposalResponse` ("Public
-// Proposal response"). All fields are in the schema's `required` list.
-export interface ProposalResponse {
+// Verbatim field list from `components.schemas.AdminProposalResponse`.
+// All fields are in the schema's `required` list.
+export interface AdminProposalResponse {
   id: number
   title: string
   content: string
@@ -12,13 +12,13 @@ export interface ProposalResponse {
   status: ProposalStatus
 }
 
-export type ApiResponse_ProposalResponse_ = ApiResponse<ProposalResponse>
+export type ApiResponse_AdminProposalResponse_ = ApiResponse<AdminProposalResponse>
 
 // Verbatim from `components.schemas.AdminProposalSummaryResponse`.
 export interface AdminProposalSummaryResponse {
   id: number
   ordererId: string
-  ordererName?: string | null
+  ordererName: string
   errandFee: number
   status: ProposalStatus
   offerCount: number
@@ -34,7 +34,7 @@ export interface AdminProposalDetailResponse {
   deadline: string
   errandFee: number
   ordererId: string
-  ordererName?: string | null
+  ordererName: string
   ordererLevel?: number
   status: ProposalStatus
   createdAt: string

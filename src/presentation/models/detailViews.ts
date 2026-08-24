@@ -9,8 +9,8 @@
 
 export interface RequestDetailView {
   proposalId: string
-  hyungnimName: string | null
-  /** 이름이 없을 때(탈퇴한 사용자 등) 화면이 대신 그릴 ID. 없으면 null. */
+  hyungnimName: string
+  /** 원본 행위자 ID. 목 원천에서는 null이다. */
   hyungnimId: string | null
   amount: number
   statusLabel: string
@@ -38,14 +38,14 @@ export interface MissionDetailView {
   missionId: string
   proposalId: string
   offerId: string
-  /** `MissionResponse`의 이름은 nullable이다. 없으면 null이고 화면이 ID로 대신 그린다. */
-  hyungnimName: string | null
+  /** 서버가 보장하는 관리자 표시용 이름. */
+  hyungnimName: string
   hyungnimId: string | null
-  kkobungName: string | null
+  kkobungName: string
   kkobungId: string | null
   openChatUrl: string | null
   statusLabel: string
-  /** 수행비 처리 여부 라벨. 지급 대상이 아니면 null. */
+  /** 수행비 처리 여부 라벨. 목 원천에서 알 수 없을 때만 null. */
   payoutStatusLabel: string | null
   /** 수행비 입금(지급 완료 기록)이 필요한 상태인지. */
   payoutRequired: boolean
@@ -67,12 +67,12 @@ export interface DisputeDetailView {
   proposalId: string
   offerId: string
   missionId: string | null
-  requesterName: string | null
-  /** 이름이 없을 때(탈퇴한 사용자 등) 화면이 대신 그릴 ID. 없으면 null. */
+  requesterName: string
+  /** 원본 행위자 ID. 목 원천에서는 null이다. */
   requesterId: string | null
   requesterRole: string
-  targetName: string | null
-  /** 이름이 없을 때(탈퇴한 사용자 등) 화면이 대신 그릴 ID. 없으면 null. */
+  targetName: string
+  /** 원본 행위자 ID. 목 원천에서는 null이다. */
   targetId: string | null
   targetRole: string
   reason: string
@@ -109,8 +109,8 @@ export interface PayoutDetailView {
   payoutId: string
   proposalId: string
   offerId: string
-  kkobungName: string | null
-  /** 이름이 없을 때(탈퇴한 사용자 등) 화면이 대신 그릴 ID. 없으면 null. */
+  kkobungName: string
+  /** 원본 행위자 ID. 목 원천에서는 null이다. */
   kkobungId: string | null
   amount: number
   statusLabel: string

@@ -30,7 +30,7 @@ export interface AdminOfferSummaryResponse {
   id: number
   proposalId: number
   runnerId: string
-  runnerName?: string | null
+  runnerName: string
   runnerLevel?: number
   status: OfferStatus
   accepted: boolean
