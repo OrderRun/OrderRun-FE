@@ -1,6 +1,7 @@
 import type { RequestTabKey } from '../pages/requests/requestTabs'
 
 export const PATHS = {
+  login: '/login',
   dashboard: '/',
   requests: '/requests',
   requestDetail: '/requests/:proposalId',

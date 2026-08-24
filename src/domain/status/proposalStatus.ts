@@ -8,7 +8,8 @@ export const PROPOSAL_STATUSES = [
   'ORDER_COMPLETED',
   'ALL_COMPLETED',
   'DISPUTED',
-  'RESOLVED',
+  'REFUND_PENDING',
+  'REFUNDED',
   'REPORTED',
   'CANCELLED',
 ] as const

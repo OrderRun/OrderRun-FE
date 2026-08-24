@@ -9,6 +9,12 @@ export interface QueryState<K extends string> {
   get: (key: K, allowed?: readonly string[]) => string
   /** 기본값과 같으면 파라미터를 지운다. 목록 상태 변경이 history를 쌓지 않도록 항상 replace. */
   set: (key: K, value: string) => void
+  /**
+   * 여러 값을 한 번에 반영한다. `set`을 연달아 부르면 두 호출이 같은
+   * `searchParams` 스냅샷을 읽어 서로를 덮으므로(검색어 변경 + 페이지 1 복귀처럼
+   * 함께 바뀌어야 하는 값), 그런 경우 반드시 이 함수를 쓴다.
+   */
+  setMany: (entries: readonly (readonly [K, string])[]) => void
 }
 
 export function useQueryState<K extends string>(
@@ -32,19 +38,28 @@ export function useQueryState<K extends string>(
     [defaults, searchParams],
   )
 
-  const set = useCallback(
-    (key: K, value: string): void => {
+  const setMany = useCallback(
+    (entries: readonly (readonly [K, string])[]): void => {
       const next = new URLSearchParams(searchParams)
 
-      if (value === defaults[key]) {
-        next.delete(key)
-      } else {
-        next.set(key, value)
+      for (const [key, value] of entries) {
+        if (value === defaults[key]) {
+          next.delete(key)
+        } else {
+          next.set(key, value)
+        }
       }
       setSearchParams(next, { replace: true })
     },
     [defaults, searchParams, setSearchParams],
   )
 
-  return { get, set }
+  const set = useCallback(
+    (key: K, value: string): void => {
+      setMany([[key, value]])
+    },
+    [setMany],
+  )
+
+  return { get, set, setMany }
 }

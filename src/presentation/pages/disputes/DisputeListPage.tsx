@@ -1,41 +1,37 @@
-import { useMemo } from 'react'
+import { useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { FilterSelect } from '../../components/FilterSelect'
 import { PageHeader } from '../../components/PageHeader'
+import { Pagination } from '../../components/Pagination'
+import { QuerySection } from '../../components/QuerySection'
 import { SearchInput } from '../../components/SearchInput'
-import { formatCount } from '../../components/formatters'
-import { DEMO_DISPUTES } from '../../demo/demoDisputes'
+import { DISPUTE_STATUS_FILTER_OPTIONS } from '../../../domain/status/statusFilter'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { parseListPage, useResetOutOfRangePage } from '../../hooks/useListPage'
 import { useQueryState } from '../../hooks/useQueryState'
+import { useDisputeListQuery } from '../../queries/listQueries'
 import { requestDetailPath } from '../../routes/paths'
 import { DisputeTable } from './DisputeTable'
 
-const STATUS_OPTIONS = ['전체', '미처리', '처리 완료', '반려']
-
-const QUERY_DEFAULTS = { q: '', status: '전체' }
+const QUERY_DEFAULTS = { q: '', status: '전체', page: '1' }
 
 export function DisputeListPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { get, set } = useQueryState(QUERY_DEFAULTS)
+  const { get, setMany } = useQueryState(QUERY_DEFAULTS)
   const keyword = get('q')
-  const status = get('status', STATUS_OPTIONS)
+  const status = get('status', DISPUTE_STATUS_FILTER_OPTIONS)
+  const debouncedKeyword = useDebouncedValue(keyword, 300)
 
-  const rows = useMemo(() => {
-    const trimmed = keyword.trim()
-    const lowered = trimmed.toLowerCase()
+  const resetToFirstPage = useCallback(() => setMany([['page', '1']]), [setMany])
 
-    return DEMO_DISPUTES.filter((dispute) => {
-      const matchesKeyword =
-        trimmed === '' ||
-        dispute.disputeId.toLowerCase().includes(lowered) ||
-        dispute.proposalId.toLowerCase().includes(lowered) ||
-        dispute.offerId.toLowerCase().includes(lowered) ||
-        dispute.requesterName.includes(trimmed)
-      const matchesStatus = status === '전체' || dispute.status === status
-
-      return matchesKeyword && matchesStatus
-    })
-  }, [keyword, status])
+  const page = parseListPage(get('page'))
+  const query = useDisputeListQuery({
+    statusLabel: status,
+    keyword: debouncedKeyword,
+    page,
+  })
+  useResetOutOfRangePage(page, query.data?.totalPages, resetToFirstPage)
 
   return (
     <>
@@ -44,34 +40,50 @@ export function DisputeListPage() {
         description="접수된 분쟁을 확인하고 요청 상세에서 처리할 수 있습니다."
       />
 
-      <section className="or-card">
-        <div className="or-toolbar">
-          <SearchInput
-            label="검색"
-            value={keyword}
-            placeholder="분쟁 ID, 요청 ID 또는 신청자로 검색"
-            onChange={(value) => set('q', value)}
-          />
-          <FilterSelect
-            label="처리 상태"
-            value={status}
-            options={STATUS_OPTIONS}
-            onChange={(value) => set('status', value)}
-          />
-          <span className="or-result-count">{formatCount(rows.length)}</span>
-        </div>
-
+      <QuerySection
+        header={
+          <div className="or-toolbar">
+            <SearchInput
+              label="검색"
+              value={keyword}
+              placeholder="분쟁 ID, 요청 ID 또는 신청자로 검색"
+              onChange={(value) => setMany([['q', value], ['page', '1']])}
+            />
+            <FilterSelect
+              label="처리 상태"
+              value={status}
+              options={DISPUTE_STATUS_FILTER_OPTIONS}
+              onChange={(value) => setMany([['status', value], ['page', '1']])}
+            />
+          </div>
+        }
+        footer={
+          query.data === undefined ? null : (
+            <Pagination
+              page={page}
+              totalPages={query.data.totalPages}
+              totalElements={query.data.totalElements}
+              pageSize={query.data.pageSize}
+              onChange={(next) => setMany([['page', String(next + 1)]])}
+            />
+          )
+        }
+        isPending={query.isPending}
+        isError={query.isError}
+        error={query.error}
+        onRetry={() => void query.refetch()}
+      >
         <DisputeTable
-          rows={rows}
+          rows={query.data?.rows ?? []}
           emptyMessage="조건에 맞는 분쟁이 없습니다."
           emptyHint="검색어나 필터 조건을 변경해 보세요."
-          onRowClick={(dispute) =>
-            navigate(requestDetailPath(dispute.proposalId, 'dispute'), {
+          onRowClick={(row) =>
+            navigate(requestDetailPath(row.proposalId, 'dispute'), {
               state: { from: location.pathname + location.search },
             })
           }
         />
-      </section>
+      </QuerySection>
     </>
   )
 }
