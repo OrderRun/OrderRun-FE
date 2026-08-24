@@ -75,6 +75,7 @@ export function toMissionRow(mission: DemoMission): MissionRow {
     key: mission.missionId,
     missionId: mission.missionId,
     proposalId: mission.proposalId,
+    offerId: mission.offerId,
     hyungnimName: mission.hyungnimName,
     kkobungName: mission.kkobungName,
     statusLabel: mission.status,

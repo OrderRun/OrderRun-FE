@@ -101,7 +101,7 @@ export function MissionInfoTab({
             value: mission.proposalId,
             newRow: true,
           },
-          { label: '선택된 지원', value: `지원 #${mission.offerId}` },
+          { label: '선택된 지원', value: mission.offerId },
           { label: '생성일', value: mission.createdAt },
           {
             label: '행님 완료 시각',

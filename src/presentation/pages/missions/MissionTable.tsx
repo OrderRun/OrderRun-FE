@@ -50,6 +50,12 @@ export function MissionTable({
           render: (row) => <span className="or-cell-id">{row.proposalId}</span>,
         },
         {
+          key: 'offerId',
+          header: '지원 ID',
+          width: '100px',
+          render: (row) => <span className="or-cell-id">{row.offerId}</span>,
+        },
+        {
           key: 'hyungnim',
           header: '행님',
           width: '100px',

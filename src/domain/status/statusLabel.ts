@@ -47,13 +47,16 @@ export function toOfferStatusLabel(status: OfferStatus): string {
   return OFFER_STATUS_LABELS[status]
 }
 
+/**
+ * 수행비 입금 여부는 '처리 여부' 축이 따로 그리므로 진행 상태 축에서는 구분하지
+ * 않는다. `COMPLETED`와 `PAID`는 운영 화면에서 똑같이 '완료'다.
+ */
 const MISSION_STATUS_LABELS: Record<MissionStatus, string> = {
   STARTED: '진행중',
   DISPUTED: '분쟁중',
   COMPLETED: '완료',
+  PAID: '완료',
   FAILED: '취소',
-  PAID: '꼬붕 수행비 입금 완료',
-  REFUNDED: '행님 입금비 환불 완료',
 }
 
 export function toMissionStatusLabel(status: MissionStatus): string {
@@ -92,21 +95,17 @@ export function toPayoutStatusLabel(status: PayoutStatus): string {
 }
 
 /**
- * 미션 목록의 '처리 여부'. 미션 응답에는 `PayoutStatus`가 없고, 수행비 입금은
- * 미션 상태 전이로 드러난다: 분쟁을 `미션 완료`로 처리하면 `COMPLETED`가 되고
- * 관리자가 꼬붕에게 수행비를 수동 입금하면 `PAID`가 된다. 따라서 입금이 필요한
- * 건(`COMPLETED`)만 '미처리'다.
- *
- * `STARTED`/`DISPUTED`는 아직 지급 대상이 아니고 `FAILED`/`REFUNDED`는 지급이
- * 아니라 환불로 끝난 건이므로 모두 대상 밖(null → 표에서 '해당 없음')이다.
- * `settlementPaid` boolean은 이 판단에 쓰지 않는다.
+ * 미션 목록·상세의 '처리 여부'. 수행비 지급은 **미션이 완료된 건에만** 존재하는
+ * 축이므로, 미션이 완료(`COMPLETED`/`PAID`)일 때만 서버의 `settlementStatus`를
+ * 그린다. 진행중·분쟁중·취소는 아직/영영 지급 대상이 아니라 null이며 화면은
+ * '해당 없음'을 그린다. `settlementPaid` boolean은 이 판단에 쓰지 않는다.
  */
-export function toMissionPayoutStatusLabel(status: MissionStatus): string | null {
-  if (status === 'COMPLETED') {
-    return '미처리'
+export function toMissionPayoutStatusLabel(
+  status: MissionStatus,
+  settlementStatus: PayoutStatus,
+): string | null {
+  if (status !== 'COMPLETED' && status !== 'PAID') {
+    return null
   }
-  if (status === 'PAID') {
-    return '처리 완료'
-  }
-  return null
+  return toPayoutStatusLabel(settlementStatus)
 }

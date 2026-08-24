@@ -6,6 +6,7 @@ import type { AdminProposalReportResponse } from '../../data/api/contracts/propo
 import type { AdminRefundSummaryResponse } from '../../data/api/contracts/refund'
 import {
   toDisputeStatusLabel,
+  toMissionPayoutStatusLabel,
   toMissionStatusLabel,
   toOfferStatusLabel,
   toPayoutStatusLabel,
@@ -57,10 +58,11 @@ export function toMissionRowFromApi(dto: MissionResponse): MissionRow {
     key: `mission-${dto.id}`,
     missionId: String(dto.id),
     proposalId: String(dto.proposalId),
+    offerId: String(dto.offerId),
     hyungnimName: dto.ordererName,
     kkobungName: dto.runnerName,
     statusLabel: toMissionStatusLabel(dto.status),
-    payoutStatusLabel: toPayoutStatusLabel(dto.settlementStatus),
+    payoutStatusLabel: toMissionPayoutStatusLabel(dto.status, dto.settlementStatus),
     openChatUrl: optionalText(dto.openChatUrl),
     createdAt: formatDateTime(dto.createdAt),
   }
@@ -99,10 +101,11 @@ export function toMissionRowFromPayout(dto: MissionResponse): MissionRow {
     key: `payout-${dto.id}`,
     missionId: String(dto.id),
     proposalId: String(dto.proposalId),
+    offerId: String(dto.offerId),
     hyungnimName: dto.ordererName,
     kkobungName: dto.runnerName,
     statusLabel: toMissionStatusLabel(dto.status),
-    payoutStatusLabel: toPayoutStatusLabel(dto.settlementStatus),
+    payoutStatusLabel: toMissionPayoutStatusLabel(dto.status, dto.settlementStatus),
     openChatUrl: optionalText(dto.openChatUrl),
     createdAt: formatDateTime(dto.createdAt),
   }

@@ -6,6 +6,7 @@ import type { AdminRefundDetailResponse } from '../../data/api/contracts/refund'
 import type { ProposalStatus } from '../../domain/status/proposalStatus'
 import {
   toDisputeStatusLabel,
+  toMissionPayoutStatusLabel,
   toMissionStatusLabel,
   toOfferStatusLabel,
   toPayoutStatusLabel,
@@ -80,7 +81,7 @@ export function toMissionDetailView(dto: MissionResponse): MissionDetailView {
     kkobungName: dto.runnerName,
     openChatUrl: optionalText(dto.openChatUrl),
     statusLabel: toMissionStatusLabel(dto.status),
-    payoutStatusLabel: toPayoutStatusLabel(dto.settlementStatus),
+    payoutStatusLabel: toMissionPayoutStatusLabel(dto.status, dto.settlementStatus),
     payoutRequired: dto.status === 'COMPLETED',
     payoutTarget: dto.status === 'COMPLETED' || dto.status === 'PAID',
     refundTarget: dto.status === 'FAILED' || dto.status === 'REFUNDED',

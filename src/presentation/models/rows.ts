@@ -65,6 +65,7 @@ export interface MissionRow {
   key: string
   missionId: string | null
   proposalId: string
+  offerId: string
   hyungnimName: string
   kkobungName: string
   /** 미션 진행 상태 라벨. 목 원천에서 알 수 없을 때만 null이다. */
