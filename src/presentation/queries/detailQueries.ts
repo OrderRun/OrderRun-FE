@@ -6,6 +6,7 @@ import {
   getAdminPayout,
   getAdminProposal,
   getAdminRefund,
+  listAdminRefunds,
   listAdminDisputes,
   listAdminOffers,
   listProposalReports,
@@ -191,23 +192,38 @@ export function useProposalDisputeQuery(
   })
 }
 
-/** 서버 규약상 `refundId`는 미션 ID다(`AdminRefundSummaryResponse` 설명). */
+/**
+ * 환불은 요청에 직접 걸린 리소스가 아니다. `refundId`는 **미션 ID가 아니라 환불
+ * 고유 ID**이고(`/v1/admin/refund` 설명: "식별자는 Refund ID입니다"), 요청 상세
+ * 응답도 그 ID를 싣지 않는다. 그래서 분쟁과 같은 목록→상세 2단 조회를 한
+ * `queryFn` 안에서 순차로 한다(키는 하나다).
+ *
+ * 미션 유무로 거르지 않는다. 입금 확인 후 요청 취소만으로도 환불이 생기므로
+ * 미션이 없는 요청에도 환불이 있을 수 있다.
+ */
 export function useRefundDetailQuery(
   proposalId: string,
-  missionId: number | null,
-  enabled: boolean,
 ): UseQueryResult<RefundDetailView | null> {
   return useQuery({
-    queryKey: adminDetailKey('refund', missionId ?? `proposal-${proposalId}`),
-    enabled: enabled && (isMockDetailMode() || missionId !== null),
+    queryKey: adminDetailKey('refund', `proposal-${proposalId}`),
     queryFn: async () => {
       if (import.meta.env.DEV && isMockEnabled()) {
         return (await loadMock()).refund(proposalId)
       }
-      if (missionId === null) {
+      const numericId = toNumericId(proposalId)
+      if (numericId === null) {
         return null
       }
-      const detail = await nullOn404(() => getAdminRefund(missionId))
+      const list = await listAdminRefunds({
+        proposalId: numericId,
+        page: 0,
+        size: DETAIL_PAGE_SIZE,
+      })
+      const first = list.content[0]
+      if (first === undefined) {
+        return null
+      }
+      const detail = await nullOn404(() => getAdminRefund(first.id))
       return detail === null ? null : toRefundDetailView(detail)
     },
   })

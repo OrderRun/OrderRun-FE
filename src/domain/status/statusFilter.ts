@@ -2,6 +2,7 @@ import { DISPUTE_PROCESS_STATUSES } from './disputeStatus'
 import { MISSION_STATUSES } from './missionStatus'
 import { OFFER_STATUSES } from './offerStatus'
 import { PAYOUT_STATUSES } from './payoutStatus'
+import { REFUND_STATUSES } from './refundStatus'
 import { PROPOSAL_REPORT_STATUSES } from './proposalReportStatus'
 import type { ProposalReportStatus } from './proposalReportStatus'
 import { PROPOSAL_STATUSES } from './proposalStatus'
@@ -10,6 +11,7 @@ import {
   toMissionStatusLabel,
   toOfferStatusLabel,
   toPayoutStatusLabel,
+  toRefundStatusLabel,
   toReportStatusLabel,
   toRequestStatusLabel,
 } from './statusLabel'
@@ -73,6 +75,11 @@ export const toDisputeStatusFilter = disputeFilter.toFilter
 const payoutFilter = buildStatusFilter(PAYOUT_STATUSES, toPayoutStatusLabel)
 export const PAYOUT_STATUS_FILTER_OPTIONS = payoutFilter.options
 export const toPayoutStatusFilter = payoutFilter.toFilter
+
+/** 환불은 반려가 없어 지급과 필터 옵션 집합이 다르다. 함께 쓰지 않는다. */
+const refundFilter = buildStatusFilter(REFUND_STATUSES, toRefundStatusLabel)
+export const REFUND_STATUS_FILTER_OPTIONS = refundFilter.options
+export const toRefundStatusFilter = refundFilter.toFilter
 
 const reportFilter = buildStatusFilter(PROPOSAL_REPORT_STATUSES, toReportStatusLabel)
 export const REPORT_STATUS_FILTER_OPTIONS = reportFilter.options

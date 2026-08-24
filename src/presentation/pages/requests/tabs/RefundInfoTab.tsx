@@ -12,14 +12,12 @@ interface RefundInfoTabProps {
   action: ActionState
   /** 환불 완료는 서버가 연결된 요청을 취소로 종결한다. 화면은 재조회 결과만 그린다. */
   onProcess: (adminNote: string) => Promise<void>
-  onReject: (adminNote: string) => Promise<void>
 }
 
 export function RefundInfoTab({
   refund,
   action,
   onProcess,
-  onReject,
 }: RefundInfoTabProps) {
   const [processOpen, setProcessOpen] = useState(false)
 
@@ -66,10 +64,11 @@ export function RefundInfoTab({
             value: <StatusBadge label={refund.statusLabel} shape="pill" />,
           },
           { label: '환불 금액', value: formatAmount(refund.amount) },
+          { label: '환불 사유', value: refund.reason },
           {
-            label: '환불 사유',
-            value: refund.reason ?? (
-              <span className="or-flag-off">등록된 사유가 없습니다.</span>
+            label: '상세 사유',
+            value: refund.reasonDetail ?? (
+              <span className="or-flag-off">등록된 상세 사유가 없습니다.</span>
             ),
           },
           { label: '요청일', value: refund.requestedAt, newRow: true },
@@ -103,9 +102,6 @@ export function RefundInfoTab({
         }}
         onConfirm={(note) => {
           onProcess(note).then(closeOnSuccess, ignoreFailure)
-        }}
-        onReject={(note) => {
-          onReject(note).then(closeOnSuccess, ignoreFailure)
         }}
       />
     </>

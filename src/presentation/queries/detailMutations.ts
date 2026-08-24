@@ -8,7 +8,6 @@ import {
   confirmProposalPayment,
   rejectAdminDispute,
   rejectAdminPayout,
-  rejectAdminRefund,
   rejectProposalReport,
   resolveAdminDispute,
 } from '../../data/api/adminApi'
@@ -99,14 +98,6 @@ export function useRefundComplete() {
     'processRefund',
     ({ refundId, adminNote }: { refundId: number; adminNote: string }) =>
       completeAdminRefund(refundId, toAdminNoteBody(adminNote)),
-  )
-}
-
-export function useRefundReject() {
-  return useAdminMutation(
-    'rejectRefund',
-    ({ refundId, adminNote }: { refundId: number; adminNote: string }) =>
-      rejectAdminRefund(refundId, toAdminNoteBody(adminNote)),
   )
 }
 

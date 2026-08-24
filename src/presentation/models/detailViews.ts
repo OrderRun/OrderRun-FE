@@ -50,8 +50,6 @@ export interface MissionDetailView {
   payoutRequired: boolean
   /** 지급 탭 대상인지(지급이 필요하거나 이미 지급된 건). */
   payoutTarget: boolean
-  /** 환불 탭 대상인지. */
-  refundTarget: boolean
   errandFee: number
   createdAt: string
   startedAt: string
@@ -84,13 +82,16 @@ export interface DisputeDetailView {
 }
 
 export interface RefundDetailView {
-  /** 서버 규약상 미션 ID와 같다. */
+  /** 환불 고유 ID. 미션 ID가 아니다. */
   refundId: string
   proposalId: string
   amount: number
   statusLabel: string
   pending: boolean
-  reason: string | null
+  /** 서버 `RefundReason`의 한글 라벨. 항상 있다. */
+  reason: string
+  /** 자유 입력 상세 사유. 없으면 null이다. */
+  reasonDetail: string | null
   requestedAt: string
   processedAt: string | null
   refundAccount: string | null

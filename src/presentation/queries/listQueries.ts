@@ -12,7 +12,7 @@ import {
   toDisputeStatusFilter,
   toMissionStatusFilter,
   toOfferStatusFilter,
-  toPayoutStatusFilter,
+  toRefundStatusFilter,
   toProposalStatusFilter,
   toReportStatusFilter,
 } from '../../domain/status/statusFilter'
@@ -230,7 +230,7 @@ export function useRefundListQuery(
         })
       }
       const result = await listAdminRefunds({
-        status: toPayoutStatusFilter(statusLabel),
+        status: toRefundStatusFilter(statusLabel),
         requestedFrom: requestedFrom === '' ? undefined : requestedFrom,
         keyword: keyword.trim() === '' ? undefined : keyword.trim(),
         page,

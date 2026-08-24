@@ -9,7 +9,7 @@ import {
   toMissionPayoutStatusLabel,
   toMissionStatusLabel,
   toOfferStatusLabel,
-  toPayoutStatusLabel,
+  toRefundProcessLabel,
   toReportStatusLabel,
   toRequestStatusLabel,
 } from '../../domain/status/statusLabel'
@@ -87,7 +87,7 @@ export function toRefundRowFromApi(dto: AdminRefundSummaryResponse): RefundRow {
     hyungnimName: dto.ordererName,
     amount: dto.amount,
     requestStatusLabel: toRequestStatusLabel(dto.proposalStatus),
-    statusLabel: toPayoutStatusLabel(dto.status),
+    statusLabel: toRefundProcessLabel(dto.proposalStatus, dto.status),
     requestedAt: formatDateTime(dto.requestedAt),
     processedAt: dto.processedAt === undefined || dto.processedAt === null
       ? null

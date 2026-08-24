@@ -29,6 +29,7 @@ import type { OfferStatus } from '../../domain/status/offerStatus'
 import type { PayoutStatus } from '../../domain/status/payoutStatus'
 import type { ProposalReportStatus } from '../../domain/status/proposalReportStatus'
 import type { ProposalStatus } from '../../domain/status/proposalStatus'
+import type { RefundStatus } from '../../domain/status/refundStatus'
 
 // The server operations tagged `관리자` in docs/api-spec/openapi.json.
 // Every other endpoint belongs to the mobile app and is out of scope.
@@ -208,17 +209,6 @@ export function settleAdminMission(
   })
 }
 
-export function refundAdminMission(
-  missionId: number,
-  body: MissionPayoutRequest = {},
-): Promise<MissionResponse> {
-  return requestEnvelope<MissionResponse>({
-    method: 'POST',
-    path: `/v1/admin/missions/${missionId}/refund`,
-    body,
-  })
-}
-
 // --- dispute ---------------------------------------------------------------
 
 export interface ListAdminDisputesParams extends PageParams {
@@ -275,9 +265,10 @@ export function rejectAdminDispute(
 // --- refund ----------------------------------------------------------------
 
 export interface ListAdminRefundsParams extends PageParams {
-  status?: readonly PayoutStatus[]
+  status?: readonly RefundStatus[]
   /** `YYYY-MM-DD`. 이 날짜 이후 요청분. */
   requestedFrom?: string
+  proposalId?: number
   keyword?: string
 }
 
@@ -290,6 +281,7 @@ export function listAdminRefunds(
     query: {
       status: params.status,
       requestedFrom: params.requestedFrom,
+      proposalId: params.proposalId,
       keyword: params.keyword,
       page: params.page,
       size: params.size,
@@ -311,17 +303,6 @@ export function completeAdminRefund(
   return requestEnvelope<AdminRefundDetailResponse>({
     method: 'POST',
     path: `/v1/admin/refund/${refundId}/complete`,
-    body,
-  })
-}
-
-export function rejectAdminRefund(
-  refundId: number,
-  body: AdminNoteRequest = {},
-): Promise<AdminRefundDetailResponse> {
-  return requestEnvelope<AdminRefundDetailResponse>({
-    method: 'POST',
-    path: `/v1/admin/refund/${refundId}/reject`,
     body,
   })
 }

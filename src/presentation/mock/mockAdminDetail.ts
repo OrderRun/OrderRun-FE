@@ -90,7 +90,6 @@ export const mockDetail = {
       payoutRequired:
         mission.status === '완료' && mission.settlementStatus === '미처리',
       payoutTarget: mission.status === '완료',
-      refundTarget: mission.status === '취소',
       errandFee: mission.payoutAmount,
       createdAt: mission.createdAt,
       startedAt: mission.createdAt,
@@ -142,6 +141,7 @@ export const mockDetail = {
       statusLabel: refund.status,
       pending: refund.status === '미처리',
       reason: refund.reason,
+      reasonDetail: null,
       requestedAt: refund.requestedAt,
       processedAt: refund.processedAt,
       refundAccount: refund.refundAccount,

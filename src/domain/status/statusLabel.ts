@@ -4,6 +4,7 @@ import type { OfferStatus } from './offerStatus'
 import type { PayoutStatus } from './payoutStatus'
 import type { ProposalStatus } from './proposalStatus'
 import type { ProposalReportStatus } from './proposalReportStatus'
+import type { RefundReason, RefundStatus } from './refundStatus'
 
 /**
  * 서버 상태값 → 운영 화면 라벨. 라벨 문자열은 각 목록 화면의 필터 옵션과
@@ -108,4 +109,46 @@ export function toMissionPayoutStatusLabel(
     return null
   }
   return toPayoutStatusLabel(settlementStatus)
+}
+
+const REFUND_STATUS_LABELS: Record<RefundStatus, string> = {
+  PENDING: '미처리',
+  COMPLETED: '처리 완료',
+}
+
+/** 환불에는 반려가 없다(서버가 반려 endpoint를 없앴다). 대기·완료 두 값뿐이다. */
+export function toRefundStatusLabel(status: RefundStatus): string {
+  return REFUND_STATUS_LABELS[status]
+}
+
+const REFUND_REASON_LABELS: Record<RefundReason, string> = {
+  USER_CANCELLED: '행님 취소',
+  ADMIN_CANCELLED: '관리자 취소',
+  DISPUTE_FAILED: '분쟁 환불',
+}
+
+export function toRefundReasonLabel(reason: RefundReason): string {
+  return REFUND_REASON_LABELS[reason]
+}
+
+/**
+ * 환불 목록의 '처리 여부'. 운영 기준은 **요청 상태**다: 환불이 필요하다고 확정된
+ * 요청(`REFUND_PENDING`)이 미처리이고, 관리자가 이체를 마치면 요청이 `REFUNDED`가
+ * 되면서 처리 완료다.
+ *
+ * 두 값 모두 아닌 요청 상태는 환불 축 밖이므로 환불 자신의 `RefundStatus`로
+ * 되돌아간다. 서버 두 값은 1:1로 맞물리지만(PENDING↔REFUND_PENDING,
+ * COMPLETED↔REFUNDED) 한쪽이 앞서 갱신될 때 빈 칸을 만들지 않기 위해서다.
+ */
+export function toRefundProcessLabel(
+  proposalStatus: ProposalStatus,
+  status: RefundStatus,
+): string {
+  if (proposalStatus === 'REFUND_PENDING') {
+    return '미처리'
+  }
+  if (proposalStatus === 'REFUNDED') {
+    return '처리 완료'
+  }
+  return toRefundStatusLabel(status)
 }

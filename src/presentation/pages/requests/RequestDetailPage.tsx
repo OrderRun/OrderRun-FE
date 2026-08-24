@@ -29,7 +29,6 @@ import {
   usePayoutComplete,
   usePayoutReject,
   useRefundComplete,
-  useRefundReject,
   useRejectDispute,
   useResolveDispute,
   useReviewReport,
@@ -104,11 +103,8 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
   const mission = missionQuery.data ?? null
   const disputeQuery = useProposalDisputeQuery(proposalId)
   const dispute = disputeQuery.data ?? null
-  const refundQuery = useRefundDetailQuery(
-    proposalId,
-    missionId,
-    mission?.refundTarget ?? false,
-  )
+  const refundQuery = useRefundDetailQuery(proposalId)
+  const refund = refundQuery.data ?? null
   const payoutQuery = usePayoutDetailQuery(
     proposalId,
     missionId,
@@ -121,13 +117,12 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
   const resolveDispute = useResolveDispute()
   const rejectDispute = useRejectDispute()
   const refundComplete = useRefundComplete()
-  const refundReject = useRefundReject()
   const payoutComplete = usePayoutComplete()
   const payoutReject = usePayoutReject()
   const reviewReport = useReviewReport()
 
   const disputeAction = toActionState([resolveDispute, rejectDispute], mockMode)
-  const refundAction = toActionState([refundComplete, refundReject], mockMode)
+  const refundAction = toActionState([refundComplete], mockMode)
   const payoutAction = toActionState([payoutComplete, payoutReject], mockMode)
   const reportAction = toActionState([reviewReport], mockMode)
 
@@ -187,12 +182,13 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
       .then(() => undefined)
   }
 
-  const runRefund = (adminNote: string, reject: boolean) => {
-    if (missionId === null) {
-      return Promise.reject(new Error('환불 대상 미션이 없습니다.'))
+  const runRefund = (adminNote: string) => {
+    if (refund === null) {
+      return Promise.reject(new Error('처리할 환불이 없습니다.'))
     }
-    const mutation = reject ? refundReject : refundComplete
-    return mutation.mutateAsync({ refundId: missionId, adminNote }).then(() => undefined)
+    return refundComplete
+      .mutateAsync({ refundId: Number(refund.refundId), adminNote })
+      .then(() => undefined)
   }
 
   const runPayout = (adminNote: string, reject: boolean) => {
@@ -388,10 +384,9 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
               onRetry={() => void refundQuery.refetch()}
             >
               <RefundInfoTab
-                refund={refundQuery.data ?? null}
+                refund={refund}
                 action={refundAction}
-                onProcess={(note) => runRefund(note, false)}
-                onReject={(note) => runRefund(note, true)}
+                onProcess={runRefund}
               />
             </QuerySection>
           ) : null}

@@ -15,7 +15,6 @@ export type AdminMutationAction =
   | 'completePayout'
   | 'rejectPayout'
   | 'processRefund'
-  | 'rejectRefund'
   | 'processReport'
 
 const INVALIDATION_TABLE: Record<AdminMutationAction, readonly AdminQueryDomain[]> = {
@@ -38,7 +37,6 @@ const INVALIDATION_TABLE: Record<AdminMutationAction, readonly AdminQueryDomain[
   rejectPayout: ['payout', 'mission', 'summary'],
   // 환불 완료는 연결된 요청을 취소로 종결한다.
   processRefund: ['refund', 'proposal', 'mission', 'summary'],
-  rejectRefund: ['refund', 'summary'],
   // 신고 승인은 Proposal만 바꾼다(REPORTED). 지원·미션은 바뀌지 않는다.
   processReport: ['report', 'proposal', 'summary'],
 }

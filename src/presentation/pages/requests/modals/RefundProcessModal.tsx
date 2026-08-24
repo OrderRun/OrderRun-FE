@@ -15,7 +15,6 @@ interface RefundProcessModalProps {
   error: string | null
   onClose: () => void
   onConfirm: (adminNote: string) => void
-  onReject: (adminNote: string) => void
 }
 
 export function RefundProcessModal(props: RefundProcessModalProps) {
@@ -35,7 +34,6 @@ function RefundProcessModalContent({
   error,
   onClose,
   onConfirm,
-  onReject,
 }: RefundProcessModalProps) {
   const [adminNote, setAdminNote] = useState('')
   const alreadyCancelled = requestStatusLabel === '취소'
@@ -46,14 +44,12 @@ function RefundProcessModalContent({
       title="환불 처리"
       description={
         alreadyCancelled
-          ? '이미 취소된 요청의 환불입니다. 완료 또는 반려 처리해도 요청 상태는 그대로입니다.'
-          : '환불을 완료 처리하면 요청도 취소로 변경됩니다. 반려하면 요청 상태는 그대로입니다.'
+          ? '이미 취소된 요청의 환불입니다. 완료 처리해도 요청 상태는 그대로입니다.'
+          : '환불을 완료 처리하면 요청도 취소로 변경됩니다.'
       }
       confirmLabel="환불 완료"
-      rejectLabel="반려"
       disabled={pending}
       error={error}
-      onReject={() => onReject(adminNote.trim())}
       onClose={pending ? () => {} : onClose}
       onConfirm={() => onConfirm(adminNote.trim())}
     >
