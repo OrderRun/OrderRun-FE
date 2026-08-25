@@ -22,8 +22,9 @@ export interface AdminDisputeDetailResponse extends AdminDisputeSummaryResponse 
   targetId: string
   targetName: string
   targetRole: string
-  surveyQuestionId: number
-  reason: string
+  reasonQuestionId: number
+  reasonQuestionText: string
+  detailReason: string
   proposalStatus: ProposalStatus
   offerStatus: OfferStatus
   adminNote?: string | null

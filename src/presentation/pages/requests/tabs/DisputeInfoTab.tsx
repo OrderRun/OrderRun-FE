@@ -77,7 +77,13 @@ export function DisputeInfoTab({
             label: '처리 여부',
             value: <StatusBadge label={dispute.statusLabel} shape="pill" />,
           },
-          { label: '분쟁 사유', value: dispute.reason },
+          { label: '분쟁 사유', value: dispute.reasonQuestionText },
+          {
+            label: '상세 사유',
+            value: dispute.detailReason ?? (
+              <span className="or-flag-off">등록된 상세 사유가 없습니다.</span>
+            ),
+          },
           {
             label: '분쟁 신청자',
             newRow: true,

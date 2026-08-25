@@ -83,7 +83,8 @@ export interface DemoDispute {
   requesterRole: DemoActorRole
   targetName: string
   targetRole: DemoActorRole
-  reason: string
+  reasonQuestionText: string
+  detailReason: string
   status: DemoProcessStatus
   requestedAt: string
 }
