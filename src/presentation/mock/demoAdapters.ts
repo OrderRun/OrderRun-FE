@@ -5,6 +5,7 @@ import type {
   DemoProposalReport,
   DemoRefund,
   DemoRequestSummary,
+  DemoUser,
 } from '../demo/demoTypes'
 import { findDemoRequestStatus } from '../demo/demoSelectors'
 import type {
@@ -14,6 +15,7 @@ import type {
   RefundRow,
   ReportRow,
   RequestRow,
+  UserRow,
 } from '../models/rows'
 
 /**
@@ -82,6 +84,15 @@ export function toMissionRow(mission: DemoMission): MissionRow {
     payoutStatusLabel: mission.status === '완료' ? mission.settlementStatus : null,
     openChatUrl: mission.openChatUrl,
     createdAt: mission.createdAt,
+  }
+}
+
+export function toUserRow(user: DemoUser): UserRow {
+  return {
+    id: user.id,
+    name: user.name,
+    createdAt: user.createdAt,
+    missionCount: user.missionCount,
   }
 }
 

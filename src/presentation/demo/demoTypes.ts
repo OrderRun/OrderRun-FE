@@ -104,6 +104,13 @@ export interface DemoRefund {
   adminNote: string
 }
 
+export interface DemoUser {
+  id: string
+  name: string
+  createdAt: string
+  missionCount: number
+}
+
 export type DemoSummaryCardKey =
   | 'unpaid'
   | 'dispute'

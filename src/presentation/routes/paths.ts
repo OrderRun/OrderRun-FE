@@ -10,6 +10,7 @@ export const PATHS = {
   disputes: '/disputes',
   refunds: '/refunds',
   reports: '/reports',
+  users: '/users',
 } as const
 
 export function requestDetailPath(
