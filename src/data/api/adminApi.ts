@@ -23,6 +23,7 @@ import type { AdminProposalReportResponse } from './contracts/proposalReport'
 import type { AdminPayoutDetailResponse } from './contracts/payout'
 import type { AdminRefundDetailResponse, AdminRefundSummaryResponse } from './contracts/refund'
 import type { AdminSummaryResponse } from './contracts/summary'
+import type { AdminUserSummaryResponse } from './contracts/user'
 import type { DisputeProcessStatus } from '../../domain/status/disputeStatus'
 import type { MissionStatus } from '../../domain/status/missionStatus'
 import type { OfferStatus } from '../../domain/status/offerStatus'
@@ -396,5 +397,25 @@ export function rejectProposalReport(reportId: number): Promise<AdminProposalRep
   return requestEnvelope<AdminProposalReportResponse>({
     method: 'POST',
     path: `/v1/admin/proposal-reports/${reportId}/reject`,
+  })
+}
+
+// --- user --------------------------------------------------------------
+
+export interface ListAdminUsersParams extends PageParams {
+  keyword?: string
+}
+
+export function listAdminUsers(
+  params: ListAdminUsersParams = {},
+): Promise<PageResponse<AdminUserSummaryResponse>> {
+  return requestEnvelope<PageResponse<AdminUserSummaryResponse>>({
+    method: 'GET',
+    path: '/v1/admin/user',
+    query: {
+      keyword: params.keyword,
+      page: params.page,
+      size: params.size,
+    },
   })
 }

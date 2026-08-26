@@ -76,6 +76,13 @@ export interface MissionRow {
   createdAt: string | null
 }
 
+export interface UserRow {
+  id: string
+  name: string
+  createdAt: string
+  missionCount: number
+}
+
 export interface ReportRow {
   reportId: string
   proposalId: string

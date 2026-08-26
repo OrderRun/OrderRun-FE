@@ -68,7 +68,10 @@ export interface DisputeDetailView {
   requesterRole: string
   targetName: string
   targetRole: string
-  reason: string
+  /** 신청자가 고른 사유 문항 문구. 서버가 항상 보낸다. */
+  reasonQuestionText: string
+  /** 자유 입력 상세 사유. 비어 있으면 null이다. */
+  detailReason: string | null
   statusLabel: string
   /** 미처리 상태여야 처리·반려 버튼을 노출한다. */
   pending: boolean

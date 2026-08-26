@@ -83,7 +83,8 @@ export interface DemoDispute {
   requesterRole: DemoActorRole
   targetName: string
   targetRole: DemoActorRole
-  reason: string
+  reasonQuestionText: string
+  detailReason: string
   status: DemoProcessStatus
   requestedAt: string
 }
@@ -101,6 +102,13 @@ export interface DemoRefund {
   requestedAt: string
   processedAt: string | null
   adminNote: string
+}
+
+export interface DemoUser {
+  id: string
+  name: string
+  createdAt: string
+  missionCount: number
 }
 
 export type DemoSummaryCardKey =

@@ -4,6 +4,7 @@ import { DEMO_OFFERS } from '../demo/demoOffers'
 import { DEMO_PROPOSAL_REPORTS } from '../demo/demoProposalReports'
 import { DEMO_REFUNDS } from '../demo/demoRefunds'
 import { DEMO_REQUEST_SUMMARIES, hasDemoDisputeOnOffer } from '../demo/demoSelectors'
+import { DEMO_USERS } from '../demo/demoUsers'
 import { ALL_STATUS_OPTION } from '../../domain/status/statusFilter'
 import type {
   DisputeRow,
@@ -13,6 +14,7 @@ import type {
   ReportRow,
   RequestRow,
   RowPage,
+  UserRow,
 } from '../models/rows'
 import {
   toDisputeRow,
@@ -21,6 +23,7 @@ import {
   toRefundRow,
   toReportRow,
   toRequestRow,
+  toUserRow,
 } from './demoAdapters'
 
 /**
@@ -69,6 +72,13 @@ interface BaseParams {
 
 interface KeywordParams extends BaseParams {
   keyword: string
+}
+
+/** 유저 목록은 상태 필터가 없어 `BaseParams`를 쓰지 않는다. */
+interface UserParams {
+  keyword: string
+  page: number
+  size: number
 }
 
 export const mockLists = {
@@ -136,6 +146,13 @@ export const mockLists = {
         (params.requestedFrom === '' ||
           refund.requestedAt.slice(0, 10) >= params.requestedFrom),
     ).map(toRefundRow)
+    return toRowPage(rows, params.page, params.size)
+  },
+
+  users(params: UserParams): RowPage<UserRow> {
+    const rows = DEMO_USERS.filter((user) =>
+      matchesKeyword(params.keyword, [user.id, user.name]),
+    ).map(toUserRow)
     return toRowPage(rows, params.page, params.size)
   },
 

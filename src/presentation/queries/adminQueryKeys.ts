@@ -12,6 +12,7 @@ export type AdminQueryDomain =
   | 'refund'
   | 'payout'
   | 'report'
+  | 'user'
 
 export type AdminQueryParams = Record<string, unknown>
 
