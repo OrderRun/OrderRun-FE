@@ -45,7 +45,8 @@ export interface RefundRow {
   amount: number
   /** 대상 요청의 상태 라벨. 알 수 없으면 null이며 표는 '해당 없음'을 그린다. */
   requestStatusLabel: string | null
-  statusLabel: string
+  /** 처리 여부 라벨. `VOIDED`면 null이며 표는 '해당 사항 없음'을 그린다. */
+  statusLabel: string | null
   requestedAt: string
   processedAt: string | null
 }

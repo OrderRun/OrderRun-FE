@@ -21,7 +21,11 @@ import type {
 } from './contracts/proposal'
 import type { AdminProposalReportResponse } from './contracts/proposalReport'
 import type { AdminPayoutDetailResponse } from './contracts/payout'
-import type { AdminRefundDetailResponse, AdminRefundSummaryResponse } from './contracts/refund'
+import type {
+  AdminRefundDetailResponse,
+  AdminRefundSummaryResponse,
+  AdminRefundVoidRequest,
+} from './contracts/refund'
 import type { AdminSummaryResponse } from './contracts/summary'
 import type { AdminUserSummaryResponse } from './contracts/user'
 import type { DisputeProcessStatus } from '../../domain/status/disputeStatus'
@@ -252,17 +256,6 @@ export function resolveAdminDispute(
   })
 }
 
-export function rejectAdminDispute(
-  disputeId: number,
-  body: AdminNoteRequest = {},
-): Promise<AdminDisputeDetailResponse> {
-  return requestEnvelope<AdminDisputeDetailResponse>({
-    method: 'POST',
-    path: `/v1/admin/dispute/${disputeId}/reject`,
-    body,
-  })
-}
-
 // --- refund ----------------------------------------------------------------
 
 export interface ListAdminRefundsParams extends PageParams {
@@ -304,6 +297,32 @@ export function completeAdminRefund(
   return requestEnvelope<AdminRefundDetailResponse>({
     method: 'POST',
     path: `/v1/admin/refund/${refundId}/complete`,
+    body,
+  })
+}
+
+/**
+ * 입금 대조 결과 입금이 확인됐을 때. 환불을 `REVIEW`에서 `PENDING`으로 확정한다.
+ * 스펙에 `requestBody`가 없으므로 `body` 키를 넘기지 않는다(httpClient가
+ * Content-Type과 본문을 함께 생략한다). 이후 이체는 `completeAdminRefund`다.
+ */
+export function confirmDepositAdminRefund(
+  refundId: number,
+): Promise<AdminRefundDetailResponse> {
+  return requestEnvelope<AdminRefundDetailResponse>({
+    method: 'POST',
+    path: `/v1/admin/refund/${refundId}/confirm-deposit`,
+  })
+}
+
+/** 입금이 없어 환불 없이 종결한다. 근거를 남기도록 `adminNote`가 필수다. */
+export function voidAdminRefund(
+  refundId: number,
+  body: AdminRefundVoidRequest,
+): Promise<AdminRefundDetailResponse> {
+  return requestEnvelope<AdminRefundDetailResponse>({
+    method: 'POST',
+    path: `/v1/admin/refund/${refundId}/void`,
     body,
   })
 }

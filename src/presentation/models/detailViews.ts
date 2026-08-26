@@ -73,7 +73,7 @@ export interface DisputeDetailView {
   /** 자유 입력 상세 사유. 비어 있으면 null이다. */
   detailReason: string | null
   statusLabel: string
-  /** 미처리 상태여야 처리·반려 버튼을 노출한다. */
+  /** 미처리 상태여야 '분쟁 처리' 버튼을 노출한다(반려 경로는 서버에서 사라졌다). */
   pending: boolean
   requestedAt: string
   resolvedAt: string | null
@@ -84,13 +84,20 @@ export interface DisputeDetailView {
   totalCount: number
 }
 
+export type RefundAction = 'complete' | 'review' | 'none'
+
 export interface RefundDetailView {
   /** 환불 고유 ID. 미션 ID가 아니다. */
   refundId: string
   proposalId: string
   amount: number
-  statusLabel: string
-  pending: boolean
+  /** 처리 여부 라벨. `VOIDED`면 null이며 화면은 '해당 사항 없음'을 그린다. */
+  statusLabel: string | null
+  /**
+   * 노출할 처리 액션. `review`는 입금 대조 단계라 '입금 확인'·'미입금'
+   * 두 갈래이고, `complete`는 환불 이체만 남은 단계다. `none`은 액션이 없다.
+   */
+  action: RefundAction
   /** 서버 `RefundReason`의 한글 라벨. 항상 있다. */
   reason: string
   /** 자유 입력 상세 사유. 없으면 null이다. */

@@ -60,7 +60,13 @@ export function RefundTable({
           key: 'refundStatus',
           header: '처리 여부',
           width: '110px',
-          render: (row) => <StatusBadge label={row.statusLabel} shape="pill" />,
+          // VOIDED는 처리 결과 배지가 아니라 "환불 대상이 아니다"라는 표시다.
+          render: (row) =>
+            row.statusLabel === null ? (
+              <span className="or-flag-off">해당 사항 없음</span>
+            ) : (
+              <StatusBadge label={row.statusLabel} shape="pill" />
+            ),
         },
         {
           key: 'requestedAt',

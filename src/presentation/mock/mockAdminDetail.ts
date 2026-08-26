@@ -139,8 +139,13 @@ export const mockDetail = {
       refundId: refund.proposalId,
       proposalId: refund.proposalId,
       amount: refund.amount,
-      statusLabel: refund.status,
-      pending: refund.status === '미처리',
+      statusLabel: refund.status === '해당 사항 없음' ? null : refund.status,
+      action:
+        refund.status === '확인 필요'
+          ? 'review'
+          : refund.status === '미처리'
+            ? 'complete'
+            : 'none',
       reason: refund.reason,
       reasonDetail: null,
       requestedAt: refund.requestedAt,

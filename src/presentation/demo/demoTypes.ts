@@ -18,14 +18,21 @@ export type DemoOfferStatus =
 
 export type DemoMissionStatus = '진행중' | '완료' | '취소' | '분쟁중'
 
-/** 신고·분쟁·환불이 공유하는 처리 상태. Proposal/지원의 진행 상태와는 다른 축이다. */
+/** 신고·지급이 공유하는 처리 상태. Proposal/지원의 진행 상태와는 다른 축이다. */
 export type DemoProcessStatus = '미처리' | '처리 완료' | '반려'
+
+/**
+ * 환불 전용 처리 상태. 환불에는 반려가 없고 입금 대조 단계('확인 필요')와
+ * 입금이 없어 종결한 건('해당 사항 없음')이 따로 있어 공용 상태와 집합이 다르다.
+ */
+export type DemoRefundStatus = '확인 필요' | '미처리' | '처리 완료' | '해당 사항 없음'
 
 export type DemoStatusLabel =
   | DemoRequestStatus
   | DemoOfferStatus
   | DemoMissionStatus
   | DemoProcessStatus
+  | DemoRefundStatus
 
 export type DemoActorRole = '행님' | '꼬붕'
 
@@ -97,7 +104,7 @@ export interface DemoRefund {
   /** 환불 계좌 예금주명. */
   accountHolderName: string
   amount: number
-  status: DemoProcessStatus
+  status: DemoRefundStatus
   reason: string
   requestedAt: string
   processedAt: string | null
@@ -128,7 +135,7 @@ export interface DemoSummaryCard {
 export interface DemoRequestSummary {
   request: DemoRequest
   offerCount: number
-  refundStatus: DemoProcessStatus | null
+  refundStatus: DemoRefundStatus | null
 }
 
 export interface DemoProposalReport {

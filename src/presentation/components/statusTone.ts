@@ -21,6 +21,8 @@ const TONE_BY_LABEL: Record<string, StatusTone> = {
   '행님 입금비 환불 완료': 'green',
   분쟁중: 'crimson',
   미처리: 'rose',
+  // 입금 대조가 끝나지 않아 환불 의무가 아직 확정되지 않은 상태.
+  '확인 필요': 'amber',
   '처리 완료': 'green',
   '반려': 'crimson',
   행님: 'violet',

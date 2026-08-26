@@ -54,7 +54,8 @@ export function toRefundRow(refund: DemoRefund): RefundRow {
     hyungnimName: refund.hyungnimName,
     amount: refund.amount,
     requestStatusLabel: findDemoRequestStatus(refund.proposalId) ?? null,
-    statusLabel: refund.status,
+    // '해당 사항 없음'(VOIDED)은 배지가 아니라 빈 축이므로 실 모드와 같이 null이다.
+    statusLabel: refund.status === '해당 사항 없음' ? null : refund.status,
     requestedAt: refund.requestedAt,
     processedAt: refund.processedAt,
   }
