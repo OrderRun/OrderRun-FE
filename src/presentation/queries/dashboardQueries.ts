@@ -16,7 +16,14 @@ import {
   toReportRowFromApi,
   toRequestRowFromApi,
 } from '../models/adminRows'
-import type { DisputeRow, MissionRow, RefundRow, ReportRow, RequestRow } from '../models/rows'
+import type {
+  DisputeRow,
+  MissionRow,
+  RefundRow,
+  ReportRow,
+  RequestRow,
+  RowPage,
+} from '../models/rows'
 import { isMockEnabled } from '../mock/mockMode'
 import { adminListKey, adminSummaryKey } from './adminQueryKeys'
 
@@ -76,7 +83,14 @@ export function usePendingDisputesQuery(): UseQueryResult<DisputeRow[]> {
 
 const PENDING_REFUND_PARAMS = { status: ['PENDING'], page: 0, size: PAGE_SIZE } as const
 
-export function usePendingRefundsQuery(): UseQueryResult<RefundRow[]> {
+/**
+ * 대시보드 환불 카드·표. 카드 수치는 `AdminSummaryResponse.refundCount`가 아니라
+ * 이 질의의 `totalElements`를 쓴다. `refundCount`의 설명("미처리 환불 수")만으로는
+ * `REVIEW`를 포함하는지 계약상 확정할 수 없고, 포함하면 아직 환불 의무가 없는
+ * 건까지 세어 과다 계상이 된다. 여기서는 범위가 `status: ['PENDING']`으로 명시돼
+ * 있어 서버 집계 의미와 무관하게 카드가 표와 같은 집합을 가리킨다.
+ */
+export function usePendingRefundsQuery(): UseQueryResult<RowPage<RefundRow>> {
   return useQuery({
     queryKey: adminListKey('refund', PENDING_REFUND_PARAMS),
     queryFn: async () => {
@@ -84,7 +98,38 @@ export function usePendingRefundsQuery(): UseQueryResult<RefundRow[]> {
         return (await loadMock()).pendingRefunds()
       }
       const page = await listAdminRefunds(PENDING_REFUND_PARAMS)
-      return page.content.map(toRefundRowFromApi)
+      return {
+        rows: page.content.map(toRefundRowFromApi),
+        totalElements: page.totalElements,
+        totalPages: page.totalPages,
+        pageNumber: page.pageNumber,
+        pageSize: page.pageSize,
+      }
+    },
+  })
+}
+
+const REVIEW_REFUND_PARAMS = { status: ['REVIEW'], page: 0, size: PAGE_SIZE } as const
+
+/**
+ * 대시보드 환불 검토 카드·표. 위 `usePendingRefundsQuery`와 같은 이유로 summary의
+ * `refundCount`를 쓰지 않고 이 질의의 `totalElements`를 그대로 쓴다.
+ */
+export function useRefundReviewQuery(): UseQueryResult<RowPage<RefundRow>> {
+  return useQuery({
+    queryKey: adminListKey('refund', REVIEW_REFUND_PARAMS),
+    queryFn: async () => {
+      if (import.meta.env.DEV && isMockEnabled()) {
+        return (await loadMock()).reviewRefunds()
+      }
+      const page = await listAdminRefunds(REVIEW_REFUND_PARAMS)
+      return {
+        rows: page.content.map(toRefundRowFromApi),
+        totalElements: page.totalElements,
+        totalPages: page.totalPages,
+        pageNumber: page.pageNumber,
+        pageSize: page.pageSize,
+      }
     },
   })
 }
