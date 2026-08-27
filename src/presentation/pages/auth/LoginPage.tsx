@@ -10,10 +10,12 @@ import { PATHS } from '../../routes/paths'
 const INVALID_MESSAGE = '아이디 또는 비밀번호가 올바르지 않습니다.'
 const NETWORK_MESSAGE = '서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.'
 const SERVER_MESSAGE = '로그인에 실패했습니다. 잠시 후 다시 시도해 주세요.'
+const LOCKED_MESSAGE = '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.'
 
 function messageFor(reason: SignInFailureReason): string {
   if (reason === 'credentials') return INVALID_MESSAGE
   if (reason === 'network') return NETWORK_MESSAGE
+  if (reason === 'locked') return LOCKED_MESSAGE
   return SERVER_MESSAGE
 }
 

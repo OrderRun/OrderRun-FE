@@ -48,6 +48,8 @@ interface PageParams {
 /**
  * `POST /v1/admin/auth/login` — the only admin operation the spec declares
  * without `security`, so it is called without an `Authorization` header.
+ * `skipAuthRetry`로 재발급 흐름에서도 빼 둔다: 공개 endpoint의 401은 자격 증명
+ * 실패지 토큰 만료가 아니므로 재발급해도 결과가 같다.
  * Failures surface as `ApiError`: 401 `ADMIN_CREDENTIALS_INVALID`,
  * 400 `VALIDATION_ERROR`, 500 `INTERNAL_SERVER_ERROR`.
  */
@@ -56,6 +58,7 @@ export function adminLogin(body: AdminLoginRequest): Promise<AuthTokenResponse> 
     method: 'POST',
     path: '/v1/admin/auth/login',
     body,
+    skipAuthRetry: true,
   })
 }
 

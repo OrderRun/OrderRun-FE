@@ -4,7 +4,7 @@
 
 > ## 상태: 서버 구현 완료
 >
-> 이 문서가 제안한 API를 백엔드가 전부 구현해 스테이징(`43.200.56.9`)에 반영했다.
+> 이 문서가 제안한 API를 백엔드가 전부 구현해 스테이징(`https://staging-api.kkobung-dan.store`)에 반영했다.
 > 관리자 operation은 6개 → **28개**가 되었고, `docs/api-spec/openapi.json`은 실제 스펙으로 동기화되어 있다.
 >
 > - **§1~§3** — 최초 조사 결과. 관리자 UI 요구사항의 기록으로 그대로 유효하다.
@@ -336,7 +336,7 @@ UI Requirement → Required Data/Action → Required API Capability
 
 ## 6. API Contract (구현 완료 · as-built)
 
-아래는 제안이 아니라 **`43.200.56.9`에 실제 배포된 스펙**이다. 원본은 `docs/api-spec/openapi.json`.
+아래는 제안이 아니라 **`https://staging-api.kkobung-dan.store`에 실제 배포된 스펙**이다. 원본은 `docs/api-spec/openapi.json`.
 
 ### 6.0 설계안과 구현이 달라진 4곳
 

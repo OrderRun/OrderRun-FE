@@ -84,6 +84,7 @@ export const mockDashboard = {
       unpaidCount: unpaidRequestRows().length,
       disputeCount: pendingDisputeRows().length,
       refundCount: pendingRefundPage().totalElements,
+      depositReviewCount: reviewRefundPage().totalElements,
       settlementCount: pendingSettlementRows().length,
       reportCount: pendingReportRows().length,
     }

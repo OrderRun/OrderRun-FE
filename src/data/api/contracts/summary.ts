@@ -3,6 +3,7 @@ export interface AdminSummaryResponse {
   unpaidCount: number
   disputeCount: number
   refundCount: number
+  depositReviewCount: number
   settlementCount: number
   reportCount: number
 }
