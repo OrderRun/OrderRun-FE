@@ -15,7 +15,6 @@ interface DisputeInfoTabProps {
   action: ActionState
   /** 성공했을 때만 resolve된다. 모달은 성공했을 때만 닫는다. */
   onResolve: (outcome: MissionResolution, note: string) => Promise<void>
-  onReject: (note: string) => Promise<void>
 }
 
 export function DisputeInfoTab({
@@ -23,7 +22,6 @@ export function DisputeInfoTab({
   missionStatusLabel,
   action,
   onResolve,
-  onReject,
 }: DisputeInfoTabProps) {
   const [resolveOpen, setResolveOpen] = useState(false)
 
@@ -77,7 +75,13 @@ export function DisputeInfoTab({
             label: '처리 여부',
             value: <StatusBadge label={dispute.statusLabel} shape="pill" />,
           },
-          { label: '분쟁 사유', value: dispute.reason },
+          { label: '분쟁 사유', value: dispute.reasonQuestionText },
+          {
+            label: '상세 사유',
+            value: dispute.detailReason ?? (
+              <span className="or-flag-off">등록된 상세 사유가 없습니다.</span>
+            ),
+          },
           {
             label: '분쟁 신청자',
             newRow: true,
@@ -198,9 +202,6 @@ export function DisputeInfoTab({
         }}
         onConfirm={(outcome, note) => {
           onResolve(outcome, note).then(closeOnSuccess, ignoreFailure)
-        }}
-        onReject={(note) => {
-          onReject(note).then(closeOnSuccess, ignoreFailure)
         }}
       />
     </div>

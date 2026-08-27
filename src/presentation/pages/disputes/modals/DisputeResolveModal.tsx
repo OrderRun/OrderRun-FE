@@ -35,7 +35,6 @@ interface DisputeResolveModalProps {
   error: string | null
   onClose: () => void
   onConfirm: (outcome: MissionResolution, note: string) => void
-  onReject: (note: string) => void
 }
 
 export function DisputeResolveModal(props: DisputeResolveModalProps) {
@@ -52,7 +51,6 @@ function DisputeResolveModalContent({
   error,
   onClose,
   onConfirm,
-  onReject,
 }: DisputeResolveModalProps) {
   const [outcome, setOutcome] = useState<OutcomeOption | null>(null)
   const [note, setNote] = useState('')
@@ -67,13 +65,6 @@ function DisputeResolveModalContent({
         <>
           <Button variant="secondary" disabled={pending} onClick={onClose}>
             닫기
-          </Button>
-          <Button
-            variant="destructive"
-            disabled={pending}
-            onClick={() => onReject(note.trim())}
-          >
-            반려
           </Button>
           <Button
             variant="primary"

@@ -4,6 +4,7 @@ import type { AdminOfferSummaryResponse } from '../../data/api/contracts/offer'
 import type { AdminProposalSummaryResponse } from '../../data/api/contracts/proposal'
 import type { AdminProposalReportResponse } from '../../data/api/contracts/proposalReport'
 import type { AdminRefundSummaryResponse } from '../../data/api/contracts/refund'
+import type { AdminUserSummaryResponse } from '../../data/api/contracts/user'
 import {
   toDisputeStatusLabel,
   toMissionPayoutStatusLabel,
@@ -22,6 +23,7 @@ import type {
   RefundRow,
   ReportRow,
   RequestRow,
+  UserRow,
 } from './rows'
 
 /**
@@ -108,6 +110,16 @@ export function toMissionRowFromPayout(dto: MissionResponse): MissionRow {
     payoutStatusLabel: toMissionPayoutStatusLabel(dto.status, dto.settlementStatus),
     openChatUrl: optionalText(dto.openChatUrl),
     createdAt: formatDateTime(dto.createdAt),
+  }
+}
+
+/** 탈퇴한 사용자의 표시용 이름도 서버가 채워 보내므로 UI에서 따로 분기하지 않는다. */
+export function toUserRowFromApi(dto: AdminUserSummaryResponse): UserRow {
+  return {
+    id: dto.id,
+    name: dto.name,
+    createdAt: formatDateTime(dto.createdAt),
+    missionCount: dto.missionCount,
   }
 }
 

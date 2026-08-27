@@ -76,7 +76,11 @@ const payoutFilter = buildStatusFilter(PAYOUT_STATUSES, toPayoutStatusLabel)
 export const PAYOUT_STATUS_FILTER_OPTIONS = payoutFilter.options
 export const toPayoutStatusFilter = payoutFilter.toFilter
 
-/** 환불은 반려가 없어 지급과 필터 옵션 집합이 다르다. 함께 쓰지 않는다. */
+/**
+ * 환불은 지급과 상태 집합 자체가 다르다(반려가 없고 `REVIEW`·`VOIDED`가 있다).
+ * 환불 화면은 반드시 이 필터를 쓴다. 지급 필터를 빌려 쓰면 없는 옵션('반려')이
+ * 뜨고 `toRefundStatusFilter`가 undefined를 돌려줘 필터가 조용히 무시된다.
+ */
 const refundFilter = buildStatusFilter(REFUND_STATUSES, toRefundStatusLabel)
 export const REFUND_STATUS_FILTER_OPTIONS = refundFilter.options
 export const toRefundStatusFilter = refundFilter.toFilter

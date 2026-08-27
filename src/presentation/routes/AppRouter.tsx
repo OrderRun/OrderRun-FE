@@ -12,6 +12,7 @@ import { RefundListPage } from '../pages/refunds/RefundListPage'
 import { ReportListPage } from '../pages/reports/ReportListPage'
 import { RequestDetailPage } from '../pages/requests/RequestDetailPage'
 import { RequestListPage } from '../pages/requests/RequestListPage'
+import { UserListPage } from '../pages/users/UserListPage'
 import { PATHS } from './paths'
 import '../styles/admin.css'
 
@@ -34,6 +35,7 @@ export function AppRouter() {
                 <Route path={PATHS.disputes} element={<DisputeListPage />} />
                 <Route path={PATHS.refunds} element={<RefundListPage />} />
                 <Route path={PATHS.reports} element={<ReportListPage />} />
+                <Route path={PATHS.users} element={<UserListPage />} />
               </Route>
             </Route>
             <Route path="*" element={<Navigate to={PATHS.dashboard} replace />} />

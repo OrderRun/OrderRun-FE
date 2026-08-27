@@ -4,6 +4,7 @@ import type { AdminPayoutDetailResponse } from '../../data/api/contracts/payout'
 import type { AdminProposalDetailResponse } from '../../data/api/contracts/proposal'
 import type { AdminRefundDetailResponse } from '../../data/api/contracts/refund'
 import type { ProposalStatus } from '../../domain/status/proposalStatus'
+import type { RefundStatus } from '../../domain/status/refundStatus'
 import {
   toDisputeStatusLabel,
   toMissionPayoutStatusLabel,
@@ -19,6 +20,7 @@ import type {
   DisputeDetailView,
   MissionDetailView,
   PayoutDetailView,
+  RefundAction,
   RefundDetailView,
   RequestDetailView,
 } from './detailViews'
@@ -109,7 +111,8 @@ export function toDisputeDetailView(
     requesterRole: dto.requesterRole,
     targetName: dto.targetName,
     targetRole: dto.targetRole,
-    reason: dto.reason,
+    reasonQuestionText: dto.reasonQuestionText,
+    detailReason: optionalText(dto.detailReason),
     statusLabel: toDisputeStatusLabel(dto.status),
     pending: dto.status === 'PENDING',
     requestedAt: formatDateTime(dto.createdAt),
@@ -121,13 +124,23 @@ export function toDisputeDetailView(
   }
 }
 
+/**
+ * `REVIEW`는 입금 대조, `PENDING`은 이체만 남은 단계다. 완료·종결된 건에는
+ * 액션이 없다. 실제 가능 여부는 서버가 판단한다(409).
+ */
+function toRefundAction(status: RefundStatus): RefundAction {
+  if (status === 'REVIEW') return 'review'
+  if (status === 'PENDING') return 'complete'
+  return 'none'
+}
+
 export function toRefundDetailView(dto: AdminRefundDetailResponse): RefundDetailView {
   return {
     refundId: String(dto.id),
     proposalId: String(dto.proposalId),
     amount: dto.amount,
     statusLabel: toRefundProcessLabel(dto.proposalStatus, dto.status),
-    pending: dto.status === 'PENDING',
+    action: toRefundAction(dto.status),
     reason: toRefundReasonLabel(dto.reason),
     reasonDetail: optionalText(dto.reasonDetail),
     requestedAt: formatDateTime(dto.requestedAt),

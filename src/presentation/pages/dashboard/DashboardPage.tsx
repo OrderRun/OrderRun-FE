@@ -11,6 +11,7 @@ import {
   usePendingRefundsQuery,
   usePendingReportsQuery,
   usePendingSettlementsQuery,
+  useRefundReviewQuery,
   useUnpaidRequestsQuery,
 } from '../../queries/dashboardQueries'
 import { toQueryErrorMessage } from '../../components/queryFeedback'
@@ -23,18 +24,22 @@ import { RequestTable } from '../requests/RequestTable'
 
 const QUERY_DEFAULTS = { card: '' }
 
-const ZERO_COUNTS: Record<SummaryCardKey, number> = {
-  unpaid: 0,
-  dispute: 0,
-  refund: 0,
-  settlement: 0,
-  report: 0,
+/** 아직 수치를 모르는 상태. 0은 "처리할 게 없다"는 다른 뜻이라 쓰지 않는다. */
+const UNKNOWN_COUNTS: Record<SummaryCardKey, number | null> = {
+  unpaid: null,
+  dispute: null,
+  refundReview: null,
+  refund: null,
+  settlement: null,
+  report: null,
 }
 
 /**
  * 대시보드는 처리가 필요한 항목만 모아 보여준다. 섹션마다 쿼리를 독립적으로
- * 그리므로 한 섹션이 실패해도 나머지는 그대로 보인다. 카드 수치는 목록 길이가
- * 아니라 summary 응답의 카운트를 쓴다.
+ * 그리므로 한 섹션이 실패해도 나머지는 그대로 보인다. 카드 수치는 summary
+ * 응답의 카운트를 쓰되, **환불 카드만** 예외로 `status: ['PENDING']` 목록 질의의
+ * `totalElements`를 쓴다. `refundCount`가 `REVIEW`(아직 환불 의무가 아닌 건)를
+ * 포함하는지 계약상 확정할 수 없어 과다 계상될 수 있기 때문이다.
  */
 export function DashboardPage() {
   const navigate = useNavigate()
@@ -46,24 +51,32 @@ export function DashboardPage() {
   const requestsQuery = useUnpaidRequestsQuery()
   const disputesQuery = usePendingDisputesQuery()
   const refundsQuery = usePendingRefundsQuery()
+  const refundReviewQuery = useRefundReviewQuery()
   const settlementsQuery = usePendingSettlementsQuery()
   const reportsQuery = usePendingReportsQuery()
 
   const summary = summaryQuery.data
+  const pendingRefundCount = refundsQuery.data?.totalElements ?? null
+  const refundReviewCount = refundReviewQuery.data?.totalElements ?? null
   const summaryCards = useMemo(
     () =>
       createSummaryCards(
         summary === undefined
-          ? ZERO_COUNTS
+          ? {
+              ...UNKNOWN_COUNTS,
+              refund: pendingRefundCount,
+              refundReview: refundReviewCount,
+            }
           : {
               unpaid: summary.unpaidCount,
               dispute: summary.disputeCount,
-              refund: summary.refundCount,
+              refund: pendingRefundCount,
+              refundReview: refundReviewCount,
               settlement: summary.settlementCount,
               report: summary.reportCount,
             },
       ),
-    [summary],
+    [summary, pendingRefundCount, refundReviewCount],
   )
 
   const shows = (card: SummaryCardKey) =>
@@ -100,8 +113,14 @@ export function DashboardPage() {
             >
               <span className="or-summary-label">{card.label}</span>
               <span className="or-summary-value">
-                {card.value}
-                <span className="or-summary-unit">건</span>
+                {card.value === null ? (
+                  '—'
+                ) : (
+                  <>
+                    {card.value}
+                    <span className="or-summary-unit">건</span>
+                  </>
+                )}
               </span>
               <span className="or-summary-hint">{card.hint}</span>
             </button>
@@ -151,17 +170,39 @@ export function DashboardPage() {
         </QuerySection>
       ) : null}
 
+      {shows('refundReview') ? (
+        <QuerySection
+          title="환불 검토"
+          count={refundReviewQuery.data?.totalElements ?? null}
+          isPending={refundReviewQuery.isPending}
+          isError={refundReviewQuery.isError}
+          error={refundReviewQuery.error}
+          onRetry={() => void refundReviewQuery.refetch()}
+        >
+          <RefundTable
+            rows={refundReviewQuery.data?.rows ?? []}
+            emptyMessage="입금 대조가 필요한 환불이 없습니다."
+            emptyHint={filterHint}
+            onRowClick={(row) =>
+              navigate(requestDetailPath(row.proposalId, 'refund'), {
+                state: originState,
+              })
+            }
+          />
+        </QuerySection>
+      ) : null}
+
       {shows('refund') ? (
         <QuerySection
           title="환불"
-          count={refundsQuery.data?.length ?? null}
+          count={refundsQuery.data?.totalElements ?? null}
           isPending={refundsQuery.isPending}
           isError={refundsQuery.isError}
           error={refundsQuery.error}
           onRetry={() => void refundsQuery.refetch()}
         >
           <RefundTable
-            rows={refundsQuery.data ?? []}
+            rows={refundsQuery.data?.rows ?? []}
             emptyMessage="처리할 환불이 없습니다."
             emptyHint={filterHint}
             onRowClick={(row) =>

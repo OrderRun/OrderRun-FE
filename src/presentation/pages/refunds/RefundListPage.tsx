@@ -5,7 +5,7 @@ import { PageHeader } from '../../components/PageHeader'
 import { Pagination } from '../../components/Pagination'
 import { QuerySection } from '../../components/QuerySection'
 import { SearchInput } from '../../components/SearchInput'
-import { PAYOUT_STATUS_FILTER_OPTIONS } from '../../../domain/status/statusFilter'
+import { REFUND_STATUS_FILTER_OPTIONS } from '../../../domain/status/statusFilter'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { parseListPage, useResetOutOfRangePage } from '../../hooks/useListPage'
 import { useQueryState } from '../../hooks/useQueryState'
@@ -21,7 +21,7 @@ export function RefundListPage() {
   const location = useLocation()
   const { get, setMany } = useQueryState(QUERY_DEFAULTS)
   const keyword = get('q')
-  const status = get('status', PAYOUT_STATUS_FILTER_OPTIONS)
+  const status = get('status', REFUND_STATUS_FILTER_OPTIONS)
   const rawFrom = get('from')
   // 서버 `requestedFrom`은 YYYY-MM-DD만 받는다. 형식이 어긋나면 싣지 않는다.
   const fromDate = DATE_PATTERN.test(rawFrom) ? rawFrom : ''
@@ -57,7 +57,7 @@ export function RefundListPage() {
             <FilterSelect
               label="처리 여부"
               value={status}
-              options={PAYOUT_STATUS_FILTER_OPTIONS}
+              options={REFUND_STATUS_FILTER_OPTIONS}
               onChange={(value) => setMany([['status', value], ['page', '1']])}
             />
             <label className="or-field">

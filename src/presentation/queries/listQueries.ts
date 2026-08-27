@@ -6,6 +6,7 @@ import {
   listAdminOffers,
   listAdminProposals,
   listAdminRefunds,
+  listAdminUsers,
   listProposalReports,
 } from '../../data/api/adminApi'
 import {
@@ -23,6 +24,7 @@ import {
   toRefundRowFromApi,
   toReportRowFromApi,
   toRequestRowFromApi,
+  toUserRowFromApi,
 } from '../models/adminRows'
 import type {
   DisputeRow,
@@ -32,6 +34,7 @@ import type {
   ReportRow,
   RequestRow,
   RowPage,
+  UserRow,
 } from '../models/rows'
 import type { PageResponse } from '../../data/api/apiEnvelope'
 import { isMockEnabled } from '../mock/mockMode'
@@ -73,6 +76,12 @@ interface ListParams {
 
 interface KeywordListParams extends ListParams {
   keyword: string
+}
+
+/** 유저 목록 endpoint에는 상태 필터가 없어 `ListParams`를 상속하지 않는다. */
+interface UserListParams {
+  keyword: string
+  page: number
 }
 
 export function useRequestListQuery(
@@ -237,6 +246,36 @@ export function useRefundListQuery(
         size: LIST_PAGE_SIZE,
       })
       return toRowPage(result, toRefundRowFromApi)
+    },
+  })
+}
+
+/** `GET /v1/admin/user`에는 상태 필터가 없어 검색어로만 조회한다. */
+export function useUserListQuery(
+  params: UserListParams,
+): UseQueryResult<RowPage<UserRow>> {
+  const { keyword, page } = params
+  return useQuery({
+    queryKey: adminListKey('user', {
+      keyword,
+      page,
+      size: LIST_PAGE_SIZE,
+    }),
+    placeholderData: keepPreviousData,
+    queryFn: async () => {
+      if (import.meta.env.DEV && isMockEnabled()) {
+        return (await loadMock()).users({
+          keyword,
+          page,
+          size: LIST_PAGE_SIZE,
+        })
+      }
+      const result = await listAdminUsers({
+        keyword: keyword.trim() === '' ? undefined : keyword.trim(),
+        page,
+        size: LIST_PAGE_SIZE,
+      })
+      return toRowPage(result, toUserRowFromApi)
     },
   })
 }

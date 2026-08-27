@@ -26,12 +26,13 @@ import {
 import {
   useCancelProposal,
   useConfirmPayment,
+  useConfirmRefundDeposit,
   usePayoutComplete,
   usePayoutReject,
   useRefundComplete,
-  useRejectDispute,
   useResolveDispute,
   useReviewReport,
+  useVoidRefund,
 } from '../../queries/detailMutations'
 import type { ReportDecision } from '../../queries/detailMutations'
 import {
@@ -115,14 +116,18 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
   const confirmPayment = useConfirmPayment()
   const cancelProposal = useCancelProposal()
   const resolveDispute = useResolveDispute()
-  const rejectDispute = useRejectDispute()
   const refundComplete = useRefundComplete()
+  const confirmDeposit = useConfirmRefundDeposit()
+  const voidRefund = useVoidRefund()
   const payoutComplete = usePayoutComplete()
   const payoutReject = usePayoutReject()
   const reviewReport = useReviewReport()
 
-  const disputeAction = toActionState([resolveDispute, rejectDispute], mockMode)
-  const refundAction = toActionState([refundComplete], mockMode)
+  const disputeAction = toActionState([resolveDispute], mockMode)
+  const refundAction = toActionState(
+    [refundComplete, confirmDeposit, voidRefund],
+    mockMode,
+  )
   const payoutAction = toActionState([payoutComplete, payoutReject], mockMode)
   const reportAction = toActionState([reviewReport], mockMode)
 
@@ -173,20 +178,29 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
       .then(() => undefined)
   }
 
-  const runDisputeReject = (adminNote: string) => {
-    if (dispute === null) {
-      return Promise.reject(new Error('처리할 분쟁이 없습니다.'))
-    }
-    return rejectDispute
-      .mutateAsync({ disputeId: Number(dispute.disputeId), adminNote })
-      .then(() => undefined)
-  }
-
   const runRefund = (adminNote: string) => {
     if (refund === null) {
       return Promise.reject(new Error('처리할 환불이 없습니다.'))
     }
     return refundComplete
+      .mutateAsync({ refundId: Number(refund.refundId), adminNote })
+      .then(() => undefined)
+  }
+
+  const runConfirmDeposit = () => {
+    if (refund === null) {
+      return Promise.reject(new Error('처리할 환불이 없습니다.'))
+    }
+    return confirmDeposit
+      .mutateAsync({ refundId: Number(refund.refundId) })
+      .then(() => undefined)
+  }
+
+  const runVoidRefund = (adminNote: string) => {
+    if (refund === null) {
+      return Promise.reject(new Error('처리할 환불이 없습니다.'))
+    }
+    return voidRefund
       .mutateAsync({ refundId: Number(refund.refundId), adminNote })
       .then(() => undefined)
   }
@@ -370,7 +384,6 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
                 missionStatusLabel={mission?.statusLabel ?? null}
                 action={disputeAction}
                 onResolve={runDisputeResolve}
-                onReject={runDisputeReject}
               />
             </QuerySection>
           ) : null}
@@ -387,6 +400,8 @@ function RequestDetailView({ proposalId }: { proposalId: string }) {
                 refund={refund}
                 action={refundAction}
                 onProcess={runRefund}
+                onConfirmDeposit={runConfirmDeposit}
+                onVoid={runVoidRefund}
               />
             </QuerySection>
           ) : null}

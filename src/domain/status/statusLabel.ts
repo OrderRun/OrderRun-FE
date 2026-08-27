@@ -77,7 +77,6 @@ export function toReportStatusLabel(status: ProposalReportStatus): string {
 const DISPUTE_STATUS_LABELS: Record<DisputeProcessStatus, string> = {
   PENDING: '미처리',
   RESOLVED: '처리 완료',
-  REJECTED: '반려',
 }
 
 export function toDisputeStatusLabel(status: DisputeProcessStatus): string {
@@ -112,11 +111,17 @@ export function toMissionPayoutStatusLabel(
 }
 
 const REFUND_STATUS_LABELS: Record<RefundStatus, string> = {
+  REVIEW: '확인 필요',
   PENDING: '미처리',
   COMPLETED: '처리 완료',
+  VOIDED: '해당 사항 없음',
 }
 
-/** 환불에는 반려가 없다(서버가 반려 endpoint를 없앴다). 대기·완료 두 값뿐이다. */
+/**
+ * 환불에는 반려가 없다(서버가 반려 endpoint를 없앴다). `REVIEW`는 아직 환불
+ * 의무가 확정되지 않은 입금 대조 단계이고, `VOIDED`는 받은 돈이 없어 환불 없이
+ * 종결한 건이다.
+ */
 export function toRefundStatusLabel(status: RefundStatus): string {
   return REFUND_STATUS_LABELS[status]
 }
@@ -125,6 +130,7 @@ const REFUND_REASON_LABELS: Record<RefundReason, string> = {
   USER_CANCELLED: '행님 취소',
   ADMIN_CANCELLED: '관리자 취소',
   DISPUTE_FAILED: '분쟁 환불',
+  PAYMENT_EXPIRED: '입금 기한 만료',
 }
 
 export function toRefundReasonLabel(reason: RefundReason): string {
@@ -132,18 +138,29 @@ export function toRefundReasonLabel(reason: RefundReason): string {
 }
 
 /**
- * 환불 목록의 '처리 여부'. 운영 기준은 **요청 상태**다: 환불이 필요하다고 확정된
- * 요청(`REFUND_PENDING`)이 미처리이고, 관리자가 이체를 마치면 요청이 `REFUNDED`가
- * 되면서 처리 완료다.
+ * 환불 목록·상세의 '처리 여부'.
  *
- * 두 값 모두 아닌 요청 상태는 환불 축 밖이므로 환불 자신의 `RefundStatus`로
- * 되돌아간다. 서버 두 값은 1:1로 맞물리지만(PENDING↔REFUND_PENDING,
+ * **`RefundStatus`를 먼저 본다.** `REVIEW`(입금 대조 전)와 `VOIDED`(입금이 없어
+ * 종결)는 요청 상태가 무엇이든 환불 의무가 있는 건이 아니다. 이 둘을 요청 상태
+ * 보정보다 앞에 두지 않으면 `REVIEW` 건이 '미처리'로 보여 없는 환불 의무를
+ * 이행하게 된다. `VOIDED`는 라벨이 아니라 null이고 화면은 '해당 사항 없음'을
+ * 그린다(배지가 아니다).
+ *
+ * 나머지(`PENDING`/`COMPLETED`)에서만 요청 상태로 보정한다: 환불이 필요하다고
+ * 확정된 요청(`REFUND_PENDING`)이 미처리이고, 이체를 마치면 요청이 `REFUNDED`가
+ * 되면서 처리 완료다. 서버 두 값은 1:1로 맞물리지만(PENDING↔REFUND_PENDING,
  * COMPLETED↔REFUNDED) 한쪽이 앞서 갱신될 때 빈 칸을 만들지 않기 위해서다.
  */
 export function toRefundProcessLabel(
   proposalStatus: ProposalStatus,
   status: RefundStatus,
-): string {
+): string | null {
+  if (status === 'VOIDED') {
+    return null
+  }
+  if (status === 'REVIEW') {
+    return toRefundStatusLabel(status)
+  }
   if (proposalStatus === 'REFUND_PENDING') {
     return '미처리'
   }

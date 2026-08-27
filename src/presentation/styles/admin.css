@@ -511,6 +511,7 @@ body {
 .or-cell-id {
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .or-cell-muted {

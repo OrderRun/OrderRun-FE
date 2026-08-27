@@ -5,6 +5,7 @@ import type {
   DemoProposalReport,
   DemoRefund,
   DemoRequestSummary,
+  DemoUser,
 } from '../demo/demoTypes'
 import { findDemoRequestStatus } from '../demo/demoSelectors'
 import type {
@@ -14,6 +15,7 @@ import type {
   RefundRow,
   ReportRow,
   RequestRow,
+  UserRow,
 } from '../models/rows'
 
 /**
@@ -52,7 +54,8 @@ export function toRefundRow(refund: DemoRefund): RefundRow {
     hyungnimName: refund.hyungnimName,
     amount: refund.amount,
     requestStatusLabel: findDemoRequestStatus(refund.proposalId) ?? null,
-    statusLabel: refund.status,
+    // '해당 사항 없음'(VOIDED)은 배지가 아니라 빈 축이므로 실 모드와 같이 null이다.
+    statusLabel: refund.status === '해당 사항 없음' ? null : refund.status,
     requestedAt: refund.requestedAt,
     processedAt: refund.processedAt,
   }
@@ -82,6 +85,15 @@ export function toMissionRow(mission: DemoMission): MissionRow {
     payoutStatusLabel: mission.status === '완료' ? mission.settlementStatus : null,
     openChatUrl: mission.openChatUrl,
     createdAt: mission.createdAt,
+  }
+}
+
+export function toUserRow(user: DemoUser): UserRow {
+  return {
+    id: user.id,
+    name: user.name,
+    createdAt: user.createdAt,
+    missionCount: user.missionCount,
   }
 }
 

@@ -127,6 +127,17 @@ export const DEMO_REQUESTS: DemoRequest[] = [
     missionId: 'M-182',
   },
   {
+    // 입금 확인 전에 취소돼 입금 대조까지 끝난 요청. 미션·지원이 없다.
+    proposalId: 'P-1015',
+    hyungnimName: '백서준',
+    depositorName: '백서준',
+    amount: 41000,
+    status: '취소',
+    createdAt: '2026-08-15 10:20',
+    selectedOfferId: null,
+    missionId: null,
+  },
+  {
     proposalId: 'P-1012',
     hyungnimName: '오세영',
     depositorName: '오세영',

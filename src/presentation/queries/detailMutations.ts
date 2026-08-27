@@ -5,11 +5,12 @@ import {
   cancelAdminProposal,
   completeAdminPayout,
   completeAdminRefund,
+  confirmDepositAdminRefund,
   confirmProposalPayment,
-  rejectAdminDispute,
   rejectAdminPayout,
   rejectProposalReport,
   resolveAdminDispute,
+  voidAdminRefund,
 } from '../../data/api/adminApi'
 import { ApiError } from '../../data/api/apiError'
 import type { AdminNoteRequest } from '../../data/api/contracts/adminNote'
@@ -85,19 +86,33 @@ export function useResolveDispute() {
   )
 }
 
-export function useRejectDispute() {
-  return useAdminMutation(
-    'rejectDispute',
-    ({ disputeId, adminNote }: { disputeId: number; adminNote: string }) =>
-      rejectAdminDispute(disputeId, toAdminNoteBody(adminNote)),
-  )
-}
-
 export function useRefundComplete() {
   return useAdminMutation(
     'processRefund',
     ({ refundId, adminNote }: { refundId: number; adminNote: string }) =>
       completeAdminRefund(refundId, toAdminNoteBody(adminNote)),
+  )
+}
+
+/**
+ * 입금 확인. 스펙에 요청 본문이 없어 메모도 보내지 않는다.
+ */
+export function useConfirmRefundDeposit() {
+  return useAdminMutation('confirmRefundDeposit', ({ refundId }: { refundId: number }) =>
+    confirmDepositAdminRefund(refundId),
+  )
+}
+
+/**
+ * 미입금. `adminNote`가 계약상 필수(1~200자)라 `toAdminNoteBody`를 쓰지
+ * 않고 그대로 싣는다. 길이 검증은 모달이 하고 최종 판단은 서버가 한다.
+ * `adminId`는 관리자 세션에 출처가 없어 보내지 않는다.
+ */
+export function useVoidRefund() {
+  return useAdminMutation(
+    'voidRefund',
+    ({ refundId, adminNote }: { refundId: number; adminNote: string }) =>
+      voidAdminRefund(refundId, { adminNote }),
   )
 }
 
