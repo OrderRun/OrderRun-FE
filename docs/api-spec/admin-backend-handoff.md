@@ -4,7 +4,7 @@ Source of Truth: [`admin-api-contract.md`](./admin-api-contract.md) · 대상: �
 
 > ## 상태: 완료 (2026-08-22)
 >
-> 이 문서가 요청한 내용은 **백엔드가 전부 구현해 스테이징(`43.200.56.9`)에 반영**했다.
+> 이 문서가 요청한 내용은 **백엔드가 전부 구현해 스테이징(`https://staging-api.kkobung-dan.store`)에 반영**했다.
 > 관리자 operation 6개 → **28개**. 아래 본문은 요청 당시의 기록으로 남긴다.
 >
 > 실제 구현된 스펙은 `docs/api-spec/openapi.json`과
