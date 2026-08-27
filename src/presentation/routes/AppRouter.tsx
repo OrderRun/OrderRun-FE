@@ -1,6 +1,7 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AdminSessionProvider } from '../auth/AdminSessionProvider'
 import { RequireAuth } from '../auth/RequireAuth'
+import { SessionExpiredToast } from '../auth/SessionExpiredToast'
 import { AdminQueryProvider } from '../queries/AdminQueryProvider'
 import { AdminLayout } from '../layout/AdminLayout'
 import { LoginPage } from '../pages/auth/LoginPage'
@@ -20,7 +21,7 @@ export function AppRouter() {
   return (
     <BrowserRouter>
       <AdminSessionProvider>
-        {/* 세션 안쪽에 두어 401일 때 signOut을 호출할 수 있게 한다. */}
+        {/* 세션 안쪽에 두어 401일 때 세션 만료 처리를 호출할 수 있게 한다. */}
         <AdminQueryProvider>
           <Routes>
             <Route path={PATHS.login} element={<LoginPage />} />
@@ -41,6 +42,8 @@ export function AppRouter() {
             <Route path="*" element={<Navigate to={PATHS.dashboard} replace />} />
           </Routes>
         </AdminQueryProvider>
+        {/* 가드 바깥의 형제라 로그인으로 튕긴 뒤에도 만료 알림이 살아 있다. */}
+        <SessionExpiredToast />
       </AdminSessionProvider>
     </BrowserRouter>
   )

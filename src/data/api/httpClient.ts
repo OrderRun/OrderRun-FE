@@ -12,6 +12,19 @@ export interface RequestConfig {
    */
   query?: Record<string, string | number | boolean | readonly (string | number)[] | undefined>
   body?: unknown
+  /**
+   * 401 재발급 흐름에서 제외한다. 재발급 endpoint 자신과 공개 endpoint(로그인)에
+   * 붙여 재발급이 자기 자신을 다시 부르는 루프를 막는다.
+   */
+  skipAuthRetry?: boolean
+  /**
+   * 이 요청 한 건의 Authorization을 명시한다. `undefined`면 등록된 provider가 주는
+   * 토큰을 쓰고(기본), `null`이면 헤더를 아예 붙이지 않으며, 문자열이면 그 값을 쓴다.
+   * provider가 더 이상 토큰을 줄 수 없는 시점에 보내야 하는 요청(세션을 비운 뒤의
+   * 폐기 요청)과 헤더를 의도적으로 빼는 공개 요청을 위한 통로다. 넘긴 값은
+   * 이 요청의 헤더로만 쓰이고 모듈에 남지 않는다.
+   */
+  authToken?: string | null
 }
 
 // Every admin operation in docs/api-spec/openapi.json declares
@@ -21,10 +34,26 @@ export interface RequestConfig {
 // and the public login call is unaffected. This module never stores a token.
 type AuthTokenProvider = () => string | null | undefined
 
+// 만료된 액세스 토큰을 재발급하는 콜백. provider와 같은 역전 규약이다 — 이
+// 모듈은 presentation을 import하지 않고 등록된 콜백만 부르므로 Data → Presentation
+// 의존이 생기지 않는다. 재발급에 성공하면 새 토큰을, 재발급할 수 없으면 `null`을
+// 돌려준다. 토큰 값은 이 모듈의 어떤 로그·에러 메시지에도 실리지 않는다.
+type AuthTokenRefresher = () => Promise<string | null>
+
 let authTokenProvider: AuthTokenProvider | null = null
+let authTokenRefresher: AuthTokenRefresher | null = null
 
 export function setAuthTokenProvider(provider: AuthTokenProvider | null): void {
   authTokenProvider = provider
+}
+
+export function setAuthTokenRefresher(refresher: AuthTokenRefresher | null): void {
+  authTokenRefresher = refresher
+}
+
+function hasUsableToken(): boolean {
+  const token = authTokenProvider?.()
+  return typeof token === 'string' && token.length > 0
 }
 
 function resolveBaseUrl(): string {
@@ -81,7 +110,9 @@ async function sendRequest(config: RequestConfig): Promise<Response> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
   }
-  const token = authTokenProvider?.()
+  // 요청별 override가 provider보다 우선한다. `null`은 "헤더 없음"을 뜻하므로
+  // provider로 되돌아가지 않는다.
+  const token = config.authToken === undefined ? authTokenProvider?.() : config.authToken
   if (token) {
     headers.Authorization = `Bearer ${token}`
   }
@@ -119,10 +150,56 @@ async function unwrapEnvelope<T>(response: Response): Promise<T> {
   return raw.data as T
 }
 
-export async function requestEnvelope<T>(config: RequestConfig): Promise<T> {
+/**
+ * 인증이 필요한 요청의 단일 전송 경로다.
+ *
+ * 1. provider가 쓸 수 있는 토큰을 주지 못하면(만료 또는 세션 없음) 먼저 재발급을
+ *    시도한다. 만료된 토큰으로 보내면 401이 확정이라 왕복 한 번을 낭비한다.
+ * 2. 전송한다.
+ * 3. 401이면 재발급을 한 번 더 시도하고, 새 토큰을 받았을 때만 **정확히 1회**
+ *    재전송한다. 재발급이 `null`이면 원래의 401 응답을 그대로 돌려주므로
+ *    재시도가 꼬리를 무는 경우가 없다.
+ *
+ * 동시 요청이 각자 재발급을 부르더라도 실제 네트워크 호출을 1건으로 합치는 책임은
+ * 등록된 refresher에 있다.
+ */
+async function sendWithAuthRetry(config: RequestConfig): Promise<Response> {
+  const refresher = authTokenRefresher
+  if (config.skipAuthRetry === true || refresher === null) {
+    return sendRequest(config)
+  }
+
+  if (!hasUsableToken()) {
+    await refresher()
+  }
+
   const response = await sendRequest(config)
+  if (response.status !== 401) {
+    return response
+  }
+
+  const refreshed = await refresher()
+  if (refreshed === null) {
+    return response
+  }
+  return sendRequest(config)
+}
+
+export async function requestEnvelope<T>(config: RequestConfig): Promise<T> {
+  const response = await sendWithAuthRetry(config)
   if (!response.ok) {
     throw await toApiError(response)
   }
   return unwrapEnvelope<T>(response)
+}
+
+/**
+ * 성공 본문에 `data`가 없는 endpoint용(예: `POST /v1/auth/logout`의
+ * `{ success: true, data: null }`). 실패는 다른 호출과 같은 `ApiError`로 던진다.
+ */
+export async function requestNoContent(config: RequestConfig): Promise<void> {
+  const response = await sendWithAuthRetry(config)
+  if (!response.ok) {
+    throw await toApiError(response)
+  }
 }
