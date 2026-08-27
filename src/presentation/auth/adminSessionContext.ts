@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react'
 
 /** 로그인 실패 원인. 문구 결정은 Presentation 화면이 한다. */
-export type SignInFailureReason = 'credentials' | 'network' | 'server'
+export type SignInFailureReason = 'credentials' | 'network' | 'server' | 'locked'
 
 export type SignInResult = { ok: true } | { ok: false; reason: SignInFailureReason }
 

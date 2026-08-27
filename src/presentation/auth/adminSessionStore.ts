@@ -150,6 +150,9 @@ export async function signIn(username: string, password: string): Promise<SignIn
     return { ok: true }
   } catch (error) {
     if (error instanceof ApiError) {
+      if (error.code === 'ADMIN_LOGIN_LOCKED' || error.status === 429) {
+        return { ok: false, reason: 'locked' }
+      }
       if (error.code === 'ADMIN_CREDENTIALS_INVALID' || error.status === 401) {
         return { ok: false, reason: 'credentials' }
       }
