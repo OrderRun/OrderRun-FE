@@ -156,6 +156,11 @@ git rebase --onto origin/main <승격된 staging tip> staging
 force push는 `--force`가 아니라 `--force-with-lease`를 쓰고, 실행 전 다른 사람이 그 사이
 `staging`에 push한 내용이 없는지 확인한다. `main`은 어떤 경우에도 force push하지 않는다.
 
+이 동기화 push는 `staging`을 `main`과 같은 커밋으로 만들기 때문에 내용이 같은 배포가 한 번
+더 일어난다. `scripts/vercel-ignore-build.sh`를 Vercel의 Ignored Build Step으로 등록해
+두면 `staging`의 대상 커밋이 이미 `origin/main`에 포함된 경우 그 배포를 건너뛴다. 판정에
+실패하면 배포를 그대로 진행한다.
+
 ## Usage Monitoring
 
 `monitoring/`은 역할별 Token 사용량을 기록하는 관측 계층이며, 역할 권한·Lane·
