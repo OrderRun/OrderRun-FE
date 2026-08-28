@@ -1026,3 +1026,48 @@ body {
   font-size: 12px;
   white-space: nowrap;
 }
+
+/* ---------- toast ---------- */
+
+.or-toast {
+  position: fixed;
+  right: var(--or-space-6);
+  bottom: var(--or-space-6);
+  /* 모달 오버레이(50)보다 위. 모달이 열린 채 세션이 끊겨도 알림이 가리지 않는다. */
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--or-space-3);
+  max-width: 360px;
+  padding: var(--or-space-3) var(--or-space-4);
+  border: 1px solid var(--or-border);
+  border-radius: var(--or-radius);
+  background: var(--or-surface);
+  box-shadow: var(--or-shadow-pop);
+}
+
+.or-toast-alert {
+  border-color: var(--or-danger);
+}
+
+.or-toast-message {
+  flex: 1;
+  color: var(--or-text);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.or-toast-close {
+  padding: 2px 6px;
+  border: 0;
+  background: none;
+  color: var(--or-text-subtle);
+  font: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.or-toast-close:hover {
+  color: var(--or-text);
+}

@@ -16,7 +16,7 @@
     "harness:usage:start": "node scripts/harness-usage/run-boundary.mjs start",
     "harness:usage:end": "node scripts/harness-usage/run-boundary.mjs end",
     "harness:usage:test": "node --test 'scripts/harness-usage/**/*.test.mjs'",
-    "api:sync": "curl -fsS \"$(sed -n 's#^VITE_API_BASE_URL=##p' .env.development.local | sed 's#/*$##')/openapi.json\" -o docs/api-spec/openapi.json"
+    "api:sync": "node scripts/api-sync.mjs"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.101.4",
