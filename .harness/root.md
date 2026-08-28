@@ -126,40 +126,15 @@ Git/commit/PR은 `rules/git.md`, 규칙 학습·승격은 `evolution/`을 따른
 ## Branch 전략과 동기화
 
 `main`은 릴리스 기준 branch, `staging`은 통합 branch다. 작업 branch는 `staging`에서
-따고 `staging`으로 squash merge하며, `staging` → `main` 승격도 squash merge로 한다.
+따고 `staging`으로 squash merge한다. 여기서 작업 branch는 일반적인 feature와 그 밖의
+모든 작업 branch를 포함하며, 별도의 branch 이름 패턴을 요구하지 않는다.
 
-승격 후 `main` → `staging` 동기화에 merge를 쓰지 않는다. squash merge는 `main`에
-`staging`의 커밋들과 내용은 같지만 SHA가 다른 커밋을 만들기 때문에, 이를 다시 merge로
-되돌리면 같은 변경이 두 갈래 이력으로 영구히 남아 이력이 꼬인다. 동기화는 항상
-`staging`을 `main` 위로 rebase한 뒤 force push한다.
-
-```bash
-git switch staging
-git fetch origin
-git rebase origin/main
-git push --force-with-lease origin staging
-```
-
-rebase가 끝나면 `staging`은 `main`과 같은 지점에서 다시 출발하고, 아직 `main`에 없는
-`staging` 커밋만 그 위에 남는다.
-
-squash로 이미 `main`에 반영된 커밋은 대개 빈 커밋이 되어 자동으로 사라지지만, 승격
-이후 `main`에 추가 커밋이 있었다면 같은 변경이 충돌로 나타난다. 이때 그 커밋을 되살리려
-하지 말고 rebase를 중단한 뒤, 승격 시점의 `staging` tip을 기준으로 `--onto`를 써서 아직
-`main`에 없는 커밋만 옮긴다.
-
-```bash
-git rebase --abort
-git rebase --onto origin/main <승격된 staging tip> staging
-```
-
-force push는 `--force`가 아니라 `--force-with-lease`를 쓰고, 실행 전 다른 사람이 그 사이
-`staging`에 push한 내용이 없는지 확인한다. `main`은 어떤 경우에도 force push하지 않는다.
-
-이 동기화 push는 `staging`을 `main`과 같은 커밋으로 만들기 때문에 내용이 같은 배포가 한 번
-더 일어난다. `scripts/vercel-ignore-build.sh`를 Vercel의 Ignored Build Step으로 등록해
-두면 `staging`의 대상 커밋이 이미 `origin/main`에 포함된 경우 그 배포를 건너뛴다. 판정에
-실패하면 배포를 그대로 진행한다.
+`staging` → `main` 승격은 반드시 merge commit으로 수행하고 squash merge하지 않는다.
+`main`에 생성된 새 merge commit은 승격 직전 `staging` tip을 부모로 포함하므로, 그 tip은
+`main`의 조상이 된다. 따라서 정상적인 승격 뒤에는 `main` → `staging` 방향으로 merge,
+rebase, force push 등 어떤 동기화 작업도 하지 않는다. 예외적인 hotfix나 backport가
+필요하면 이 기본 규칙으로 처리하지 않고 별도 결정을 받는다. `main`은 어떤 경우에도
+force push하지 않는다.
 
 ## Usage Monitoring
 

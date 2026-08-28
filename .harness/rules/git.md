@@ -67,16 +67,17 @@ The PR body must contain all of the following sections:
 PR creation permission does not authorize merging, enabling auto-merge, pushing
 additional changes, creating a tag or release, or triggering a deployment.
 Because merging into `main` may deploy, merge only after the PR exists and the
-user gives a separate explicit merge request.
+user gives a separate explicit merge request. An authorized `staging` to `main`
+promotion merge must create a merge commit; never use squash merge for it.
 
 After creating the PR, report its link, head and base branches, verification
 results, and unverified areas. Do not claim that PR creation deployed or merged
 the change.
 
-### Syncing main back to staging
+### After promotion
 
-After a promotion squash merge, never merge `main` back into `staging`. Rebase
-`staging` onto `main` and force push with `--force-with-lease`, as defined in
-the branch strategy section of `root.md`. Treat this sync as a separate
-permission: perform it only when the user explicitly asks, and never force push
+After the promotion merge commit, take no routine `main` to `staging` sync
+action. Do not merge, rebase, or force push `staging` as a post-promotion step;
+the merge commit preserves the branches' common history. Exceptional hotfix or
+backport handling requires a separate explicit decision. Never force push
 `main`.
